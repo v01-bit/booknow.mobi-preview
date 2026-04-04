@@ -76,7 +76,7 @@ html{scrollbar-width:none}
 .tc.sel{background:#DC802C;color:white;font-weight:600}
 .tc.busy{background:#3A3A3A;color:#555;text-decoration:line-through;cursor:not-allowed}
 .tc.busy:hover{background:#3A3A3A}
-.btn{width:100%;padding:12px;background:#8A9BAE;color:white;border:none;border-radius:6px;font-size:16px;font-weight:600;cursor:pointer;font-family:inherit;flex-shrink:0;margin-top:8px}
+.btn{width:100%;padding:12px;background:#8A9BAE;color:white;border:none;border-radius:6px;font-size:16px;font-weight:600;cursor:pointer;font-family:inherit;flex-shrink:0;margin-top:auto}
 </style>
 </head>
 <body>
@@ -154,7 +154,7 @@ html{scrollbar-width:none}
                         <div class="tc busy">14:00 – 15:00</div>
                     </div>
                     <div class="tcol">
-                        <div class="tc">11:00 – 12:00</dit>
+                        <div class="tc">11:00 – 12:00</div>
                         <div class="tc">15:00 – 16:00</div>
                     </div>
                     <div class="tcol">
@@ -164,8 +164,8 @@ html{scrollbar-width:none}
                 </div>
             </div>
         </div>
-    </div>
     <button class="btn">Next →</button>
+    </div>
 </div>
 <script>
 (function(){
@@ -205,7 +205,7 @@ html{scrollbar-width:none}
                   + cWk.getBoundingClientRect().height + parseFloat(getComputedStyle(cWk).marginBottom);
         var tHead = document.querySelector('.tslot-head');
         var tFixH = tHead.getBoundingClientRect().height + parseFloat(getComputedStyle(tHead).marginBottom);
-        var btnMargin = parseFloat(getComputedStyle(btn).marginTop) || 8;
+        var btnMargin = 0; /* button is inside .content with margin-top:auto */
 
         /* 3 — Available height for dynamic content */
         var fixedChrome = padY + hdrH + sFixH + cFixH + tFixH + cGap * 2 + btnMargin;
