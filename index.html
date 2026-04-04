@@ -178,13 +178,14 @@ html{scrollbar-width:none}
         var maxCellH = Math.min(cellW, Math.round(cellW * 0.82));
         cells.forEach(function(c){ c.style.height = maxCellH + 'px'; });
 
-        // Service list: measure row height and show exactly 3 with no clipping
+        // Service list: show 3 items + peek of 4th to hint scrollability
         var rows = document.querySelectorAll('.sr');
-        if(rows.length >= 3){
+        if(rows.length > 3){
             var top0 = rows[0].getBoundingClientRect().top;
             var bot2 = rows[2].getBoundingClientRect().bottom;
             var svc3H = bot2 - top0;
-            svcScroll.style.maxHeight = Math.ceil(svc3H) + 'px';
+            // Add 24px peek so the top of the 4th item is just visible
+            svcScroll.style.maxHeight = Math.ceil(svc3H + 24) + 'px';
         } else {
             svcScroll.style.maxHeight = 'none';
         }
