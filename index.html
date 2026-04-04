@@ -22,7 +22,7 @@ html{scrollbar-width:none}
 }
 .header{display:flex;align-items:center;justify-content:space-between;padding-top:env(safe-area-inset-top,8px)}
 .back{color:#E5E5E5;font-size:20px;text-decoration:none}
-.htitle{font-size:17px;font-weight:600;color:#E5E5E5}
+.htitle{font-size:15px;font-weight:600;color:#E5E5E5}
 .hright{color:#888;font-size:12px}
 .progress{display:flex;gap:4px;margin-top:12px;margin-bottom:12px}
 .pseg{flex:1;height:4px;background:#3A3A3A;border-radius:2px}
@@ -50,7 +50,7 @@ html{scrollbar-width:none}
 .cal-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px}
 .cal-head .mo{font-size:14px;color:#E5E5E5;font-weight:600}
 .arrows{display:flex;gap:4px}
-.arr{width:38px;height:38px;background:#3A3A3A;border-radius:4px;display:flex;align-items:center;justify-content:center;color:#E5E5E5;font-size:17px;cursor:pointer;border:none;font-family:inherit}
+.arr{width:32px;height:32px;background:#3A3A3A;border-radius:4px;display:flex;align-items:center;justify-content:center;color:#E5E5E5;font-size:15px;cursor:pointer;border:none;font-family:inherit}
 .cal-wk{display:grid;grid-template-columns:repeat(7,1fr);gap:3px;margin-bottom:3px}
 .cal-wk span{text-align:center;font-size:9px;color:#666;font-weight:500;padding:2px 0}
 .cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:3px}
@@ -77,10 +77,6 @@ html{scrollbar-width:none}
 .tc.busy{background:#3A3A3A;color:#555;text-decoration:line-through;cursor:not-allowed}
 .tc.busy:hover{background:#3A3A3A}
 .btn{width:100%;padding:12px;background:#8A9BAE;color:white;border:none;border-radius:6px;font-size:16px;font-weight:600;cursor:pointer;font-family:inherit;flex-shrink:0;margin-top:8px}
-.svc-toggle{padding:8px 0 2px;font-size:11px;color:#DC802C;cursor:pointer;letter-spacing:.3px;font-weight:500}
-.svc-detail{width:100%;background:#3A3A3A;border:1px solid #454545;border-radius:6px;color:#E5E5E5;font-size:13px;font-family:inherit;padding:10px 12px;resize:none;margin-top:6px;outline:none;box-sizing:border-box}
-.svc-detail::placeholder{color:#666}
-.svc-detail:focus{border-color:#DC802C}
 </style>
 </head>
 <body>
@@ -129,8 +125,6 @@ html{scrollbar-width:none}
             <div class="svc-track"></div>
             <div class="svc-thumb"></div>
             </div>
-            <div class="svc-toggle" onclick="toggleSvcDetail()">+ Add details</div>
-            <textarea class="svc-detail" style="display:none" placeholder="Describe what you need or request a quote..."></textarea>
         </div>
         <div class="section">
             <div class="cal-head"><span class="mo">April 2026</span><div class="arrows"><button class="arr">‹</button><button class="arr">›</button></div></div>
@@ -160,7 +154,7 @@ html{scrollbar-width:none}
                         <div class="tc busy">14:00 – 15:00</div>
                     </div>
                     <div class="tcol">
-                        <div class="tc">11:00 – 12:00</div>
+                        <div class="tc">11:00 – 12:00</dit>
                         <div class="tc">15:00 – 16:00</div>
                     </div>
                     <div class="tcol">
@@ -177,22 +171,6 @@ html{scrollbar-width:none}
 (function(){
     var thumbFn;
 
-    /* ── Toggle "Add details" textarea ── */
-    window.toggleSvcDetail = function(){
-        var d = document.querySelector('.svc-detail');
-        var t = document.querySelector('.svc-toggle');
-        if(!d || !t) return;
-        if(d.style.display === 'none'){
-            d.style.display = '';
-            t.textContent = '\u2212 Hide details';
-            d.focus();
-        } else {
-            d.style.display = 'none';
-            t.textContent = '+ Add details';
-        }
-        layout();
-    };
-
     function layout(){
         var vh = window.innerHeight;
         var sc = document.querySelector('.screen');
@@ -204,11 +182,7 @@ html{scrollbar-width:none}
         var rows = document.querySelectorAll('.sr');
         var tcs = document.querySelectorAll('.tc');
         var btn = document.querySelector('.btn');
-        var toggle = document.querySelector('.svc-toggle');
-        var detail = document.querySelector('.svc-detail');
         if(!nonEmpty.length || !rows.length || !tcs.length) return;
-
-        var detailOpen = detail && detail.style.display !== 'none';
 
         /* 1 — Reset all dynamic styles */
         cells.forEach(function(c){ c.style.height=''; c.style.fontSize=''; });
@@ -217,8 +191,6 @@ html{scrollbar-width:none}
         svcScroll.style.maxHeight='none';
         btn.style.paddingTop=''; btn.style.paddingBottom='';
         content.style.gap='';
-        if(toggle) toggle.style.display='';
-        if(detail){ detail.style.height=''; if(detailOpen) detail.style.height='0'; }
 
         /* 2 — Measure fixed chrome */
         var scS = getComputedStyle(sc);
@@ -227,7 +199,6 @@ html{scrollbar-width:none}
         var cGap = parseFloat(getComputedStyle(content).gap) || 10;
         var sLbl = document.querySelector('.section .lbl');
         var sFixH = sLbl.getBoundingClientRect().height + parseFloat(getComputedStyle(sLbl).marginBottom);
-        var toggleH = toggle ? toggle.getBoundingClientRect().height : 0;
         var cHead = document.querySelector('.cal-head');
         var cWk = document.querySelector('.cal-wk');
         var cFixH = cHead.getBoundingClientRect().height + parseFloat(getComputedStyle(cHead).marginBottom)
@@ -237,7 +208,7 @@ html{scrollbar-width:none}
         var btnMargin = parseFloat(getComputedStyle(btn).marginTop) || 8;
 
         /* 3 — Available height for dynamic content */
-        var fixedChrome = padY + hdrH + sFixH + toggleH + cFixH + tFixH + cGap * 2 + btnMargin;
+        var fixedChrome = padY + hdrH + sFixH + cFixH + tFixH + cGap * 2 + btnMargin;
         var available = vh - fixedChrome;
 
         /* 4 — Measure content for ideal calculations */
@@ -252,38 +223,34 @@ html{scrollbar-width:none}
         /* 5 — Ideal sizes (Galaxy A51 / Pixel 9 Pro XL baseline) */
         var IDEAL_SVC_PAD = 14;
         var IDEAL_TC_H = 44;
+        var IDEAL_BTN_H = Math.round(IDEAL_TC_H * 1.3);  /* 57px — larger than time slots */
         var idealRowH = rowContentH + 2 * IDEAL_SVC_PAD + rowGap;
         var idealCellH = cw;                              /* square */
         var idealCalH = nCalRows * idealCellH + calGaps;
         var idealTsH = 2 * IDEAL_TC_H + 6;
-        var idealBtnH = IDEAL_TC_H;                       /* match time slots */
-        var idealDetailH = detailOpen ? 70 : 0;
-        var detailGap = detailOpen ? 6 : 0;
 
         /* 6 — Scale factor */
         var idealSvc3 = 3 * idealRowH;
-        var idealTotal = idealSvc3 + idealCalH + idealTsH + idealBtnH + idealDetailH + detailGap;
+        var idealTotal = idealSvc3 + idealCalH + idealTsH + IDEAL_BTN_H;
         var sf = available / idealTotal;
 
         /* 7 — Expand service rows if surplus */
         var visibleRows = 3;
         if(sf >= 1.0 && rows.length > 3){
             for(var tr = Math.min(rows.length, 6); tr > 3; tr--){
-                var tryTotal = tr * idealRowH + idealCalH + idealTsH + idealBtnH + idealDetailH + detailGap;
+                var tryTotal = tr * idealRowH + idealCalH + idealTsH + IDEAL_BTN_H;
                 if(available / tryTotal >= 0.95){
                     visibleRows = tr;
                     break;
                 }
             }
-            idealTotal = visibleRows * idealRowH + idealCalH + idealTsH + idealBtnH + idealDetailH + detailGap;
+            idealTotal = visibleRows * idealRowH + idealCalH + idealTsH + IDEAL_BTN_H;
             sf = available / idealTotal;
         }
 
-        /* 8 — Constrained: hide toggle, reclaim space */
+        /* 8 — Constrained mode (sf < 0.85) */
         if(sf < 0.85){
-            if(toggle) toggle.style.display = 'none';
-            available += toggleH;
-            idealTotal = idealSvc3 + idealCalH + idealTsH + idealBtnH;
+            idealTotal = idealSvc3 + idealCalH + idealTsH + IDEAL_BTN_H;
             sf = available / idealTotal;
             visibleRows = 3;
         }
@@ -303,11 +270,11 @@ html{scrollbar-width:none}
             }
 
             tcs.forEach(function(t){ t.style.height = '36px'; });
-            var sBtnPad = Math.max(8, Math.round((36 - 19) / 2));
+            /* Button still larger than time slots in scroll mode */
+            var sBtnPad = Math.max(10, Math.round((42 - 19) / 2));
             btn.style.paddingTop = sBtnPad + 'px';
             btn.style.paddingBottom = sBtnPad + 'px';
 
-            if(detailOpen){ detail.style.height = '40px'; detail.style.overflow = 'auto'; }
             content.style.gap = '8px';
             if(thumbFn) thumbFn();
             return;
@@ -336,18 +303,13 @@ html{scrollbar-width:none}
         tcH = Math.max(tcH, 28); tcH = Math.min(tcH, 56);
         tcs.forEach(function(t){ t.style.height = tcH + 'px'; });
 
-        /* === BUTTON (match time slots) === */
-        var btnPad = Math.max(8, Math.round((tcH - 19) / 2));
+        /* === BUTTON (larger than time slots) === */
+        var btnH = Math.round(IDEAL_BTN_H * s);
+        btnH = Math.max(btnH, tcH + 4);           /* always at least 4px taller than time slots */
+        if(sf > 1.0) btnH = Math.round(IDEAL_BTN_H * Math.min(sf, 1.25)); /* scale UP with surplus */
+        var btnPad = Math.max(10, Math.round((btnH - 19) / 2));
         btn.style.paddingTop = btnPad + 'px';
         btn.style.paddingBottom = btnPad + 'px';
-
-        /* === DETAIL TEXTAREA === */
-        if(detailOpen){
-            var dH = Math.round(70 * s);
-            dH = Math.max(40, Math.min(dH, 80));
-            detail.style.height = dH + 'px';
-            detail.style.overflow = 'auto';
-        }
 
         /* === CONTENT GAP === */
         var gap = sf > 1.0 ? Math.min(16, Math.round(10 + (sf - 1.0) * 20)) : Math.max(6, Math.round(10 * s));
