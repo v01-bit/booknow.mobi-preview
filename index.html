@@ -13,43 +13,47 @@
 html,body{background:#1E1E1E;min-height:100%;font-family:'Inter',sans-serif;color:#E5E5E5;-webkit-font-smoothing:antialiased;overflow-y:auto;overflow-x:hidden}
 html::-webkit-scrollbar{display:none}
 html{scrollbar-width:none}
-.screen{display:flex;flex-direction:column;min-height:100vh;min-height:100dvh;padding:16px 16px 20px;max-width:800px;margin:0 auto;background:#2D2D2D}
-@media(min-width:500px){.screen{padding:24px 28px 28px;border-left:1px solid #383838;border-right:1px solid #383838}}
-@media(min-width:700px){.screen{padding:28px 36px 32px}}
+.screen{display:flex;flex-direction:column;min-height:100vh;min-height:100dvh;padding:16px 16px 16px;max-width:800px;margin:0 auto;background:#2D2D2D}
+@media(min-width:500px){
+    .screen{padding:20px 28px 20px;border-left:1px solid #383838;border-right:1px solid #383838}
+}
+@media(min-width:700px){
+    .screen{padding:24px 36px 24px}
+}
 .header{display:flex;align-items:center;justify-content:space-between;padding-top:env(safe-area-inset-top,8px)}
 .back{color:#E5E5E5;font-size:20px;text-decoration:none}
 .htitle{font-size:17px;font-weight:600;color:#E5E5E5}
 .hright{color:#888;font-size:12px}
-.progress{display:flex;gap:4px;margin-top:14px;margin-bottom:16px}
+.progress{display:flex;gap:4px;margin-top:12px;margin-bottom:12px}
 .pseg{flex:1;height:4px;background:#3A3A3A;border-radius:2px}
 .pseg.on{background:#DC802C}
-.content{flex:1;display:flex;flex-direction:column;justify-content:space-between;gap:12px;min-height:0}
+.content{flex:1;display:flex;flex-direction:column;justify-content:space-between;gap:10px;min-height:0}
 .section{flex-shrink:0}
-.lbl{font-size:11px;color:#888;text-transform:uppercase;letter-spacing:.8px;margin-bottom:8px}
-.svc-scroll{overflow-y:auto;margin-top:2px;padding-right:6px}
+.lbl{font-size:11px;color:#888;text-transform:uppercase;letter-spacing:.8px;margin-bottom:6px}
+.svc-scroll{overflow-y:auto;padding-right:6px}
 .svc-scroll::-webkit-scrollbar{width:4px}
 .svc-scroll::-webkit-scrollbar-track{background:#3A3A3A;border-radius:2px}
 .svc-scroll::-webkit-scrollbar-thumb{background:#666;border-radius:2px}
-.sr{display:flex;align-items:center;gap:14px;padding:16px;background:transparent;border-radius:6px;margin-bottom:8px;cursor:pointer;border:1px solid #383838}
-.sr .si{width:44px;height:44px;background:#454545;border-radius:4px;display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0}
+.sr{display:flex;align-items:center;gap:12px;padding:18px 14px;background:transparent;border-radius:6px;margin-bottom:6px;cursor:pointer;border:1px solid #383838}
+.sr .si{width:46px;height:46px;background:#454545;border-radius:4px;display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0}
 .sr .sn{font-size:15px;color:#E5E5E5;font-weight:500}
-.sr .sd{font-size:12px;color:#888;margin-top:3px}
-.sr .sp{font-size:15px;color:#888;font-weight:500;flex-shrink:0}
-.sr.sel{background:transparent;border:1px solid #383838;border-left:3px solid #DC802C;padding-left:13px}
+.sr .sd{font-size:11px;color:#888;margin-top:2px}
+.sr .sp{font-size:15px;color:#888;font-weight:600;flex-shrink:0;margin-left:auto}
+.sr.sel{background:transparent;border:1px solid #383838;border-left:3px solid #DC802C;padding-left:11px}
 .sr.sel .si{background:#DC802C}
 .sr.sel .sn{color:white;font-weight:600}
 .sr.sel .sd{color:#AAA}
 .sr.sel .sp{color:#DC802C;font-weight:600}
 .sr.other{border:1px dashed #383838;background:transparent}
 .sr.other .si{background:transparent;border:1px dashed #666;color:#888;font-size:22px}
-.cal-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px}
-.cal-head .mo{font-size:15px;color:#E5E5E5;font-weight:600}
+.cal-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px}
+.cal-head .mo{font-size:14px;color:#E5E5E5;font-weight:600}
 .cal-head .arrows{display:flex;gap:4px}
-.cal-head .arr{width:28px;height:28px;background:#3A3A3A;border-radius:2px;display:flex;align-items:center;justify-content:center;color:#E5E5E5;font-size:12px;cursor:pointer;border:none}
-.cal-wk{display:grid;grid-template-columns:repeat(7,1fr);gap:4px;margin-bottom:4px}
-.cal-wk span{text-align:center;font-size:10px;color:#666;font-weight:500;padding:4px 0}
-.cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:4px}
-.cd{display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:500;color:#2D2D2D;background:#A0A07D;border-radius:2px;cursor:pointer;border:none;font-family:inherit}
+.cal-head .arr{width:26px;height:26px;background:#3A3A3A;border-radius:2px;display:flex;align-items:center;justify-content:center;color:#E5E5E5;font-size:11px;cursor:pointer;border:none}
+.cal-wk{display:grid;grid-template-columns:repeat(7,1fr);gap:3px;margin-bottom:3px}
+.cal-wk span{text-align:center;font-size:9px;color:#666;font-weight:500;padding:2px 0}
+.cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:3px}
+.cd{display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:500;color:#2D2D2D;background:#A0A07D;border-radius:2px;cursor:pointer;border:none;font-family:inherit}
 .cd:hover{background:#B5B58A}
 .cd.booked{background:#3A3A3A;color:#555;cursor:default}
 .cd.booked:hover{background:#3A3A3A}
@@ -60,19 +64,20 @@ html{scrollbar-width:none}
 .cd.past:hover{background:#3A3A3A}
 .cd.empty{background:transparent;cursor:default}
 .cd.empty:hover{background:transparent}
-.tlbl{font-size:11px;color:#888;text-transform:uppercase;letter-spacing:.8px;margin-bottom:10px}
+.tlbl{font-size:11px;color:#888;text-transform:uppercase;letter-spacing:.8px;margin-bottom:8px}
 .tscroll-wrap{position:relative}
 .tscroll{display:flex;gap:6px;overflow-x:auto;-webkit-overflow-scrolling:touch;padding-bottom:4px;scroll-snap-type:x mandatory}
 .tscroll::-webkit-scrollbar{display:none}
 .tcol{display:flex;flex-direction:column;gap:6px;flex:0 0 calc((100% - 12px) / 3);scroll-snap-align:start}
-.tc{height:44px;width:100%;display:flex;align-items:center;justify-content:center;background:#A0A07D;border-radius:4px;font-size:13px;font-weight:500;color:#2D2D2D;cursor:pointer;border:none;font-family:inherit;white-space:nowrap}
+.tc{height:48px;width:100%;display:flex;align-items:center;justify-content:center;background:#A0A07D;border-radius:4px;font-size:13px;font-weight:500;color:#2D2D2D;cursor:pointer;border:none;font-family:inherit;white-space:nowrap}
 .tc:hover{background:#B5B58A}
 .tc.sel{background:#DC802C;color:white;font-weight:600}
 .tc.busy{background:#3A3A3A;color:#555;text-decoration:line-through;cursor:not-allowed}
 .tc.busy:hover{background:#3A3A3A}
-.btn{width:100%;padding:18px;background:#8A9BAE;color:white;border:none;border-radius:6px;font-size:16px;font-weight:600;cursor:pointer;font-family:inherit;flex-shrink:0;margin-top:16px;padding-bottom:calc(18px + env(safe-area-inset-bottom,0px))}
+.btn{width:100%;padding:20px;background:#8A9BAE;color:white;border:none;border-radius:6px;font-size:16px;font-weight:600;cursor:pointer;font-family:inherit;flex-shrink:0;margin-top:12px;padding-bottom:calc(20px + env(safe-area-inset-bottom,0px))}
 </style>
-</head><body>
+</head>
+<body>
 <div class="screen">
     <div>
         <div class="header">
@@ -90,27 +95,27 @@ html{scrollbar-width:none}
             <div class="svc-scroll">
                 <div class="sr sel">
                     <div class="si"><svg width="18" height="18" viewBox="0 0 24 24" fill="white"><path d="M22.7 19l-9.1-9.1c.9-2.3.4-5-1.5-6.9-2-2-5-2.4-7.4-1.3L9 6 6 9 1.6 4.7C.4 7.1.9 10.1 2.9 12.1c1.9 1.9 4.6 2.4 6.9 1.5l9.1 9.1c.4.4 1 .4 1.4 0l2.3-2.3c.5-.4.5-1.1.1-1.4z"/></svg></div>
-                    <div style="flex:1"><div class="sn">Blocked Drain</div><div class="sd">Emergency &amp; scheduled</div></div>
+                    <div style="flex:1;min-width:0"><div class="sn">Blocked Drain</div><div class="sd">Emergency &amp; scheduled</div></div>
                     <div class="sp">$120+</div>
                 </div>
                 <div class="sr">
                     <div class="si">🔥</div>
-                    <div style="flex:1"><div class="sn">Hot Water Repair</div><div class="sd">Gas &amp; electric systems</div></div>
+                    <div style="flex:1;min-width:0"><div class="sn">Hot Water Repair</div><div class="sd">Gas &amp; electric systems</div></div>
                     <div class="sp">$180+</div>
                 </div>
                 <div class="sr">
                     <div class="si">🚿</div>
-                    <div style="flex:1"><div class="sn">Tap Installation</div><div class="sd">Kitchen &amp; bathroom</div></div>
+                    <div style="flex:1;min-width:0"><div class="sn">Tap Installation</div><div class="sd">Kitchen &amp; bathroom</div></div>
                     <div class="sp">$90+</div>
                 </div>
                 <div class="sr">
                     <div class="si">🚽</div>
-                    <div style="flex:1"><div class="sn">Toilet Repair</div><div class="sd">Leaks, cisterns, seals</div></div>
+                    <div style="flex:1;min-width:0"><div class="sn">Toilet Repair</div><div class="sd">Leaks, cisterns, seals</div></div>
                     <div class="sp">$110+</div>
                 </div>
                 <div class="sr other">
                     <div class="si">+</div>
-                    <div style="flex:1"><div class="sn">Other / Custom</div><div class="sd">Describe what you need</div></div>
+                    <div style="flex:1;min-width:0"><div class="sn">Other / Custom</div><div class="sd">Describe what you need</div></div>
                     <div class="sp" style="color:#666">Quote</div>
                 </div>
             </div>
@@ -130,17 +135,33 @@ html{scrollbar-width:none}
             <div class="tlbl">Time slot — Tue 8 Apr</div>
             <div class="tscroll-wrap">
                 <div class="tscroll">
-                    <div class="tcol"><div class="tc busy">8:00 – 9:00</div><div class="tc">12:00 – 13:00</div></div>
-                    <div class="tcol"><div class="tc busy">9:00 – 10:00</div><div class="tc">13:00 – 14:00</div></div>
-                    <div class="tcol"><div class="tc sel">10:00 – 11:00</div><div class="tc busy">14:00 – 15:00</div></div>
-                    <div class="tcol"><div class="tc">11:00 – 12:00</div><div class="tc">15:00 – 16:00</div></div>
-                    <div class="tcol"><div class="tc">16:00 – 17:00</div><div class="tc busy">17:00 – 18:00</div></div>
+                    <div class="tcol">
+                        <div class="tc busy">8:00 – 9:00</div>
+                        <div class="tc">12:00 – 13:00</div>
+                    </div>
+                    <div class="tcol">
+                        <div class="tc busy">9:00 – 10:00</div>
+                        <div class="tc">13:00 – 14:00</div>
+                    </div>
+                    <div class="tcol">
+                        <div class="tc sel">10:00 – 11:00</div>
+                        <div class="tc busy">14:00 – 15:00</div>
+                    </div>
+                    <div class="tcol">
+                        <div class="tc">11:00 – 12:00</div>
+                        <div class="tc">15:00 – 16:00</div>
+                    </div>
+                    <div class="tcol">
+                        <div class="tc">16:00 – 17:00</div>
+                        <div class="tc busy">17:00 – 18:00</div>
+                    </div>
                 </div>
             </div>
         </div>
     </div>
     <button class="btn">Next →</button>
-</div><script>
+</div>
+<script>
 (function(){
     function layout(){
         var sc = document.querySelector('.screen');
@@ -148,14 +169,26 @@ html{scrollbar-width:none}
         var cells = document.querySelectorAll('.cd');
         var nonEmpty = document.querySelectorAll('.cd:not(.empty)');
         if(!nonEmpty.length) return;
+
         var cellW = nonEmpty[0].offsetWidth;
-        var firstRow = document.querySelector('.sr');
-        var rowH = firstRow ? firstRow.offsetHeight : 80;
-        var rowGap = 8;
-        var svc3H = (rowH * 3) + (rowGap * 2);
-        cells.forEach(function(c){ c.style.height = cellW + 'px'; });
-        svcScroll.style.maxHeight = svc3H + 'px';
+
+        // Calendar cells: cap height at 80% of width to reduce calendar dominance
+        // On phones this makes cells slightly rectangular; on tablets they stay compact
+        var maxCellH = Math.min(cellW, Math.round(cellW * 0.82));
+        cells.forEach(function(c){ c.style.height = maxCellH + 'px'; });
+
+        // Service list: measure row height and show exactly 3 with no clipping
+        var rows = document.querySelectorAll('.sr');
+        if(rows.length >= 3){
+            var top0 = rows[0].getBoundingClientRect().top;
+            var bot2 = rows[2].getBoundingClientRect().bottom;
+            var svc3H = bot2 - top0;
+            svcScroll.style.maxHeight = Math.ceil(svc3H) + 'px';
+        } else {
+            svcScroll.style.maxHeight = 'none';
+        }
     }
+
     function initScrollHint(){
         var tscroll = document.querySelector('.tscroll');
         var wrap = document.querySelector('.tscroll-wrap');
@@ -169,6 +202,7 @@ html{scrollbar-width:none}
             setTimeout(function(){ tscroll.scrollTo({left: 0, behavior: 'smooth'}); }, 400);
         }, 800);
     }
+
     if(document.fonts && document.fonts.ready){
         document.fonts.ready.then(function(){ requestAnimationFrame(layout); initScrollHint(); });
     } else {
