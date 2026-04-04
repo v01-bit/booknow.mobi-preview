@@ -146,7 +146,7 @@ html{scrollbar-width:none}
                     </div>
                     <div class="tcol">
                         <div class="tc sel">10:00 – 11:00</div>
-                        <div class="tc busy">14:00 – 15:00</div>
+                        <div class="tc busy">14:00 – 15:00</dit>
                     </div>
                     <div class="tcol">
                         <div class="tc">11:00 – 12:00</div>
@@ -178,14 +178,13 @@ html{scrollbar-width:none}
         var maxCellH = Math.min(cellW, Math.round(cellW * 0.82));
         cells.forEach(function(c){ c.style.height = maxCellH + 'px'; });
 
-        // Service list: show 3 items + peek of 4th to hint scrollability
+        // Service list: show exactly 3 items with no clipping
         var rows = document.querySelectorAll('.sr');
-        if(rows.length > 3){
+        if(rows.length >= 3){
             var top0 = rows[0].getBoundingClientRect().top;
             var bot2 = rows[2].getBoundingClientRect().bottom;
             var svc3H = bot2 - top0;
-            // Add 24px peek so the top of the 4th item is just visible
-            svcScroll.style.maxHeight = Math.ceil(svc3H + 24) + 'px';
+            svcScroll.style.maxHeight = Math.ceil(svc3H) + 'px';
         } else {
             svcScroll.style.maxHeight = 'none';
         }
