@@ -10,8 +10,8 @@
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
-html,body{background:#2D2D2D;height:100%;font-family:'Inter',sans-serif;color:#E5E5E5;-webkit-font-smoothing:antialiased;overflow:hidden}
-.screen{display:flex;flex-direction:column;height:100vh;height:100dvh;padding:16px 16px 20px;max-width:430px;margin:0 auto}
+html,body{background:#2D2D2D;min-height:100%;font-family:'Inter',sans-serif;color:#E5E5E5;-webkit-font-smoothing:antialiased}
+.screen{display:flex;flex-direction:column;min-height:100vh;min-height:100dvh;padding:16px 16px 20px;max-width:430px;margin:0 auto}
 .header{display:flex;align-items:center;justify-content:space-between;padding-top:env(safe-area-inset-top,8px)}
 .back{color:#E5E5E5;font-size:20px;text-decoration:none}
 .htitle{font-size:17px;font-weight:600;color:#E5E5E5}
@@ -19,7 +19,7 @@ html,body{background:#2D2D2D;height:100%;font-family:'Inter',sans-serif;color:#E
 .progress{display:flex;gap:4px;margin-top:14px}
 .pseg{flex:1;height:3px;background:#3A3A3A;border-radius:2px}
 .pseg.on{background:#DC802C}
-.content{flex:1;display:flex;flex-direction:column;justify-content:space-between;min-height:0;gap:10px;padding-top:10px}
+.content{flex:1;display:flex;flex-direction:column;justify-content:space-between;gap:10px;padding-top:10px}
 .lbl{font-size:11px;color:#888;text-transform:uppercase;letter-spacing:.8px;margin-bottom:8px}
 .svc-scroll{overflow-y:auto;margin-top:2px;padding-right:6px}
 .svc-scroll::-webkit-scrollbar{width:4px}
@@ -153,84 +153,36 @@ html,body{background:#2D2D2D;height:100%;font-family:'Inter',sans-serif;color:#E
 (function(){
     function layout(){
         var sc = document.querySelector('.screen');
-        var content = document.querySelector('.content');
-        var calGrid = document.querySelector('.cal-grid');
-        var calHead = document.querySelector('.cal-head');
-        var calWk = document.querySelector('.cal-wk');
         var svcScroll = document.querySelector('.svc-scroll');
-        var svcLbl = document.querySelector('.lbl');
-        var tlbl = document.querySelector('.tlbl');
-        var tscroll = document.querySelector('.tscroll');
         var btn = document.querySelector('.btn');
         var headerBlock = sc.children[0];
         var cells = document.querySelectorAll('.cd');
         var nonEmpty = document.querySelectorAll('.cd:not(.empty)');
         if(!nonEmpty.length) return;
-
-        // Measure fixed elements
-        var screenH = sc.clientHeight;
+        var cellW = nonEmpty[0].offsetWidth;
+        var vh = window.innerHeight;
         var headerH = headerBlock.offsetHeight;
         var btnH = btn.offsetHeight;
-        var calHeadH = calHead.offsetHeight + calWk.offsetHeight + 13;
-        var timeH = tlbl.offsetHeight + tscroll.offsetHeight + 10;
-        var svcLblH = svcLbl.offsetHeight + 10;
-
-        // Cell width (determines max square size)
-        var cellW = nonEmpty[0].offsetWidth;
-
-        // Available height for content area
-        var availH = screenH - headerH - btnH;
-
-        // Fixed content: cal header/weekdays, time section, service label
-        var fixedH = calHeadH + timeH + svcLblH;
-
-        // Calendar grid: 5 rows + 4 gaps of 3px
-        var gridGaps = 12;
-
-        // Space-evenly gaps: ~4 gaps minimum 10px each
-        var evenGaps = 40;
-
-        // Max service list height: show 3 items comfortably = ~216px
-        // Min service list height: show 1.5 items = ~105px
+        var availH = vh - headerH - btnH - 46;
         var svcMaxH = 216;
         var svcMinH = 105;
-
-        // Try square cells first
+        var gridGaps = 12;
         var squareGridH = (cellW * 5) + gridGaps;
-        var neededForSquare = fixedH + squareGridH + svcMaxH + evenGaps;
-
+        var totalNeeded = svcMaxH + squareGridH + 140;
         var cellH, svcH;
-
-        if(neededForSquare <= availH){
-            // Plenty of room: square cells, full service list
+        if(totalNeeded <= availH){
             cellH = cellW;
             svcH = svcMaxH;
-            // Distribute extra space via CSS space-evenly (no action needed)
+        } else if(svcMinH + squareGridH + 140 <= availH){
+            cellH = cellW;
+            svcH = Math.max(svcMinH, availH - squareGridH - 140);
         } else {
-            // Not enough room. First try reducing service list
-            var neededWithMinSvc = fixedH + squareGridH + svcMinH + evenGaps;
-            if(neededWithMinSvc <= availH){
-                // Square cells fit with reduced service list
-                cellH = cellW;
-                svcH = availH - fixedH - squareGridH - evenGaps;
-                svcH = Math.max(svcMinH, Math.min(svcMaxH, svcH));
-            } else {
-                // Need to compress cells too
-                svcH = svcMinH;
-                var gridAvail = availH - fixedH - svcH - evenGaps;
-                cellH = Math.floor((gridAvail - gridGaps) / 5);
-                cellH = Math.max(28, Math.min(cellW, cellH));
-            }
+            cellH = cellW;
+            svcH = svcMinH;
         }
-
-        // Apply cell heights
         cells.forEach(function(c){ c.style.height = cellH + 'px'; });
-
-        // Apply service scroll height
         svcScroll.style.maxHeight = svcH + 'px';
     }
-
-    // Run after fonts load
     if(document.fonts && document.fonts.ready){
         document.fonts.ready.then(function(){ requestAnimationFrame(layout); });
     } else {
