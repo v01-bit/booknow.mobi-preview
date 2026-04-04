@@ -312,9 +312,11 @@ html{scrollbar-width:none}
         btn.style.paddingTop = btnPad + 'px';
         btn.style.paddingBottom = btnPad + 'px';
 
-        /* 11 — MEASURE ACTUAL CONTENT BOX, DISTRIBUTE GAPS EVENLY */
-        /* .content has flex:1 so its height = available space in .screen */
-        var contentH = content.getBoundingClientRect().height;
+        /* 11 — CALCULATE CONTENT BOX HEIGHT, DISTRIBUTE GAPS EVENLY */
+        /* Use math (vh - padY - hdrH) not DOM measurement, because
+           min-height:100vh on .screen inflates getBoundingClientRect
+           when children overflow */
+        var contentH = vh - padY - hdrH;
         var totalChildH = 0;
         for(var ci = 0; ci < content.children.length; ci++){
             totalChildH += content.children[ci].getBoundingClientRect().height;
