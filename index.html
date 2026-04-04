@@ -10,16 +10,21 @@
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
-html,body{background:#2D2D2D;min-height:100%;font-family:'Inter',sans-serif;color:#E5E5E5;-webkit-font-smoothing:antialiased}
-.screen{display:flex;flex-direction:column;min-height:100vh;min-height:100dvh;padding:16px 16px 20px;max-width:430px;margin:0 auto}
+html,body{background:#1E1E1E;min-height:100%;font-family:'Inter',sans-serif;color:#E5E5E5;-webkit-font-smoothing:antialiased;overflow-y:auto;overflow-x:hidden}
+html::-webkit-scrollbar{display:none}
+html{scrollbar-width:none}
+.screen{display:flex;flex-direction:column;min-height:100vh;min-height:100dvh;padding:16px 16px 20px;max-width:800px;margin:0 auto;background:#2D2D2D}
+@media(min-width:500px){.screen{padding:24px 28px 28px;border-left:1px solid #383838;border-right:1px solid #383838}}
+@media(min-width:700px){.screen{padding:28px 36px 32px}}
 .header{display:flex;align-items:center;justify-content:space-between;padding-top:env(safe-area-inset-top,8px)}
 .back{color:#E5E5E5;font-size:20px;text-decoration:none}
 .htitle{font-size:17px;font-weight:600;color:#E5E5E5}
 .hright{color:#888;font-size:12px}
-.progress{display:flex;gap:4px;margin-top:14px}
-.pseg{flex:1;height:3px;background:#3A3A3A;border-radius:2px}
+.progress{display:flex;gap:4px;margin-top:14px;margin-bottom:16px}
+.pseg{flex:1;height:4px;background:#3A3A3A;border-radius:2px}
 .pseg.on{background:#DC802C}
-.content{flex:1;display:flex;flex-direction:column;justify-content:space-between;gap:10px;padding-top:10px}
+.content{flex:1;display:flex;flex-direction:column;justify-content:space-between;gap:12px;min-height:0}
+.section{flex-shrink:0}
 .lbl{font-size:11px;color:#888;text-transform:uppercase;letter-spacing:.8px;margin-bottom:8px}
 .svc-scroll{overflow-y:auto;margin-top:2px;padding-right:6px}
 .svc-scroll::-webkit-scrollbar{width:4px}
@@ -41,9 +46,9 @@ html,body{background:#2D2D2D;min-height:100%;font-family:'Inter',sans-serif;colo
 .cal-head .mo{font-size:15px;color:#E5E5E5;font-weight:600}
 .cal-head .arrows{display:flex;gap:4px}
 .cal-head .arr{width:28px;height:28px;background:#3A3A3A;border-radius:2px;display:flex;align-items:center;justify-content:center;color:#E5E5E5;font-size:12px;cursor:pointer;border:none}
-.cal-wk{display:grid;grid-template-columns:repeat(7,1fr);gap:3px;margin-bottom:3px}
+.cal-wk{display:grid;grid-template-columns:repeat(7,1fr);gap:4px;margin-bottom:4px}
 .cal-wk span{text-align:center;font-size:10px;color:#666;font-weight:500;padding:4px 0}
-.cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:3px}
+.cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:4px}
 .cd{display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:500;color:#2D2D2D;background:#A0A07D;border-radius:2px;cursor:pointer;border:none;font-family:inherit}
 .cd:hover{background:#B5B58A}
 .cd.booked{background:#3A3A3A;color:#555;cursor:default}
@@ -56,6 +61,9 @@ html,body{background:#2D2D2D;min-height:100%;font-family:'Inter',sans-serif;colo
 .cd.empty{background:transparent;cursor:default}
 .cd.empty:hover{background:transparent}
 .tlbl{font-size:11px;color:#888;text-transform:uppercase;letter-spacing:.8px;margin-bottom:10px}
+.tscroll-wrap{position:relative}
+.tscroll-wrap::after{content:'';position:absolute;top:0;right:0;bottom:4px;width:24px;background:linear-gradient(to right,transparent,#2D2D2D);pointer-events:none;opacity:1;transition:opacity .3s}
+.tscroll-wrap.scrolled-end::after{opacity:0}
 .tscroll{display:flex;gap:6px;overflow-x:auto;-webkit-overflow-scrolling:touch;padding-bottom:4px;scroll-snap-type:x mandatory}
 .tscroll::-webkit-scrollbar{display:none}
 .tcol{display:flex;flex-direction:column;gap:6px;flex:0 0 calc((100% - 12px) / 3);scroll-snap-align:start}
@@ -64,10 +72,9 @@ html,body{background:#2D2D2D;min-height:100%;font-family:'Inter',sans-serif;colo
 .tc.sel{background:#DC802C;color:white;font-weight:600}
 .tc.busy{background:#3A3A3A;color:#555;text-decoration:line-through;cursor:not-allowed}
 .tc.busy:hover{background:#3A3A3A}
-.btn{width:100%;padding:14px;background:#8A9BAE;color:white;border:none;border-radius:4px;font-size:15px;font-weight:600;cursor:pointer;font-family:inherit;flex-shrink:0;padding-bottom:calc(14px + env(safe-area-inset-bottom,0px))}
+.btn{width:100%;padding:14px;background:#8A9BAE;color:white;border:none;border-radius:4px;font-size:15px;font-weight:600;cursor:pointer;font-family:inherit;flex-shrink:0;margin-top:16px;padding-bottom:calc(14px + env(safe-area-inset-bottom,0px))}
 </style>
-</head>
-<body>
+</head><body>
 <div class="screen">
     <div>
         <div class="header">
@@ -123,33 +130,34 @@ html,body{background:#2D2D2D;min-height:100%;font-family:'Inter',sans-serif;colo
         </div>
         <div class="section">
             <div class="tlbl">Time slot — Tue 8 Apr</div>
-            <div class="tscroll">
-                <div class="tcol">
-                    <div class="tc busy">8:00 – 9:00</div>
-                    <div class="tc">12:00 – 13:00</div>
-                </div>
-                <div class="tcol">
-                    <div class="tc busy">9:00 – 10:00</div>
-                    <div class="tc">13:00 – 14:00</div>
-                </div>
-                <div class="tcol">
-                    <div class="tc sel">10:00 – 11:00</div>
-                    <div class="tc busy">14:00 – 15:00</div>
-                </div>
-                <div class="tcol">
-                    <div class="tc">11:00 – 12:00</div>
-                    <div class="tc">15:00 – 16:00</div>
-                </div>
-                <div class="tcol">
-                    <div class="tc">16:00 – 17:00</div>
-                    <div class="tc busy">17:00 – 18:00</div>
+            <div class="tscroll-wrap">
+                <div class="tscroll">
+                    <div class="tcol">
+                        <div class="tc busy">8:00 – 9:00</div>
+                        <div class="tc">12:00 – 13:00</div>
+                    </div>
+                    <div class="tcol">
+                        <div class="tc busy">9:00 – 10:00</div>
+                        <div class="tc">13:00 – 14:00</div>
+                    </div>
+                    <div class="tcol">
+                        <div class="tc sel">10:00 – 11:00</div>
+                        <div class="tc busy">14:00 – 15:00</div>
+                    </div>
+                    <div class="tcol">
+                        <div class="tc">11:00 – 12:00</div>
+                        <div class="tc">15:00 – 16:00</div>
+                    </div>
+                    <div class="tcol">
+                        <div class="tc">16:00 – 17:00</div>
+                        <div class="tc busy">17:00 – 18:00</div>
+                    </div>
                 </div>
             </div>
         </div>
     </div>
     <button class="btn">Next →</button>
-</div>
-<script>
+</div><script>
 (function(){
     function layout(){
         var sc = document.querySelector('.screen');
@@ -162,20 +170,23 @@ html,body{background:#2D2D2D;min-height:100%;font-family:'Inter',sans-serif;colo
         var cellW = nonEmpty[0].offsetWidth;
         var vh = window.innerHeight;
         var headerH = headerBlock.offsetHeight;
-        var btnH = btn.offsetHeight;
-        var availH = vh - headerH - btnH - 46;
-        var svcMaxH = 216;
-        var svcMinH = 105;
-        var gridGaps = 12;
+        var btnH = btn.offsetHeight + 16;
+        var screenPad = 36;
+        var availH = vh - headerH - btnH - screenPad;
+        var svcMinH = 225;
+        var svcMaxH = 280;
+        var gridGaps = 16;
         var squareGridH = (cellW * 5) + gridGaps;
-        var totalNeeded = svcMaxH + squareGridH + 140;
+        var fixedH = 187;
+        var totalWithMax = fixedH + svcMaxH + squareGridH;
+        var totalWithMin = fixedH + svcMinH + squareGridH;
         var cellH, svcH;
-        if(totalNeeded <= availH){
+        if(totalWithMax <= availH){
             cellH = cellW;
             svcH = svcMaxH;
-        } else if(svcMinH + squareGridH + 140 <= availH){
+        } else if(totalWithMin <= availH){
             cellH = cellW;
-            svcH = Math.max(svcMinH, availH - squareGridH - 140);
+            svcH = Math.max(svcMinH, availH - squareGridH - fixedH);
         } else {
             cellH = cellW;
             svcH = svcMinH;
@@ -183,10 +194,28 @@ html,body{background:#2D2D2D;min-height:100%;font-family:'Inter',sans-serif;colo
         cells.forEach(function(c){ c.style.height = cellH + 'px'; });
         svcScroll.style.maxHeight = svcH + 'px';
     }
+    function initScrollHint(){
+        var tscroll = document.querySelector('.tscroll');
+        var wrap = document.querySelector('.tscroll-wrap');
+        if(!tscroll || !wrap) return;
+        tscroll.addEventListener('scroll', function(){
+            var atEnd = tscroll.scrollLeft + tscroll.offsetWidth >= tscroll.scrollWidth - 2;
+            wrap.classList.toggle('scrolled-end', atEnd);
+        });
+        setTimeout(function(){
+            tscroll.scrollTo({left: 30, behavior: 'smooth'});
+            setTimeout(function(){
+                tscroll.scrollTo({left: 0, behavior: 'smooth'});
+            }, 400);
+        }, 800);
+    }
     if(document.fonts && document.fonts.ready){
-        document.fonts.ready.then(function(){ requestAnimationFrame(layout); });
+        document.fonts.ready.then(function(){
+            requestAnimationFrame(layout);
+            initScrollHint();
+        });
     } else {
-        setTimeout(layout, 100);
+        setTimeout(function(){ layout(); initScrollHint(); }, 100);
     }
     requestAnimationFrame(layout);
     window.addEventListener('resize', layout);
