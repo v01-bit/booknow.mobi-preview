@@ -248,7 +248,7 @@ html{scrollbar-width:none}
             if(rows.length >= 3){
                 var t0s = rows[0].getBoundingClientRect().top;
                 var b2s = rows[2].getBoundingClientRect().bottom;
-                svcScroll.style.maxHeight = Math.ceil(b2s - t0s) + 'px';
+                svcScroll.style.maxHeight = Math.ceil(b2s - t0s + rowGap) + 'px';
             }
             tcs.forEach(function(t){ t.style.height = '36px'; });
             var sBtnPad = Math.max(10, Math.round((42 - 19) / 2));
@@ -285,7 +285,7 @@ html{scrollbar-width:none}
 
         var t0 = rows[0].getBoundingClientRect().top;
         var bN = rows[Math.min(visibleRows - 1, rows.length - 1)].getBoundingClientRect().bottom;
-        var baseSvcMaxH = Math.ceil(bN - t0);
+        var baseSvcMaxH = Math.ceil(bN - t0 + rowGap);
         if(rows.length > visibleRows) svcScroll.style.maxHeight = baseSvcMaxH + 'px';
 
         var cellH = Math.max(20, Math.round(idealCellH * s));
@@ -322,9 +322,19 @@ html{scrollbar-width:none}
         content.children[2].style.marginTop = contentGap + 'px';
         btn.style.marginTop = 'auto';
 
-        /* Step 10 removed - surplus redistribution was causing 4th row clipping */
+        /* 10 - Surplus into svc-scroll for scroll hint */
+        var btnRect = btn.getBoundingClientRect();
+        var tsSectionBot = content.children[2].getBoundingClientRect().bottom;
+        var excessAboveBtn = Math.max(0, (btnRect.top - tsSectionBot) - contentGap);
 
-    if(thumbFn) thumbFn();
+        if(excessAboveBtn > 10 && rows.length > visibleRows){
+            var nextRowH = rows[visibleRows] ? rows[visibleRows].getBoundingClientRect().height + rowGap : 69;
+            var svcGrowth = Math.min(excessAboveBtn, nextRowH);
+            var curMaxH = parseInt(svcScroll.style.maxHeight) || svcScroll.offsetHeight;
+            svcScroll.style.maxHeight = (curMaxH + svcGrowth) + 'px';
+        }
+
+        if(thumbFn) thumbFn();
     }
     function initServiceSelect(){
 var rows=document.querySelectorAll(".svc-scroll .sr:not(.other)");
