@@ -6,7 +6,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="theme-color" content="#2D2D2D">
-<title>BookNow — Book a Service</title>
+<title>BookNow â Book a Service</title>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
@@ -132,7 +132,7 @@ html{scrollbar-width:none}
             </div>
         </div>
         <div class="section">
-            <div class="cal-head"><span class="mo">April 2026</span><div class="arrows"><button class="arr">‹</button><button class="arr">›</button></div></div>
+            <div class="cal-head"><span class="mo">April 2026</span><div class="arrows"><button class="arr">â¹</button><button class="arr">âº</button></div></div>
             <div class="cal-wk"><span>M</span><span>T</span><span>W</span><span>T</span><span>F</span><span>S</span><span>S</span></div>
             <div class="cal-grid">
                 <div class="cd empty"></div><div class="cd empty"></div><div class="cd past">1</div><div class="cd past">2</div><div class="cd past">3</div><div class="cd past">4</div><div class="cd past">5</div>
@@ -143,28 +143,28 @@ html{scrollbar-width:none}
             </div>
         </div>
         <div class="section">
-            <div class="tslot-head"><span class="tlbl">Time slot — Tue 8 Apr</span><div class="arrows"><button class="arr" onclick="document.querySelector('.tscroll').scrollBy({left:-120,behavior:'smooth'})">‹</button><button class="arr" onclick="document.querySelector('.tscroll').scrollBy({left:120,behavior:'smooth'})">›</button></div></div>
+            <div class="tslot-head"><span class="tlbl">Time slot â Tue 8 Apr</span><div class="arrows"><button class="arr" onclick="document.querySelector('.tscroll').scrollBy({left:-120,behavior:'smooth'})">â¹</button><button class="arr" onclick="document.querySelector('.tscroll').scrollBy({left:120,behavior:'smooth'})">âº</button></div></div>
             <div class="tscroll-wrap">
                 <div class="tscroll">
                     <div class="tcol">
-                        <div class="tc busy">8:00 – 9:00</div>
-                        <div class="tc">12:00 – 13:00</div>
+                        <div class="tc busy">8:00 â 9:00</div>
+                        <div class="tc">12:00 â 13:00</div>
                     </div>
                     <div class="tcol">
-                        <div class="tc busy">9:00 – 10:00</div>
-                        <div class="tc">13:00 – 14:00</div>
+                        <div class="tc busy">9:00 â 10:00</div>
+                        <div class="tc">13:00 â 14:00</div>
                     </div>
                     <div class="tcol">
-                        <div class="tc sel">10:00 – 11:00</div>
-                        <div class="tc busy">14:00 – 15:00</div>
+                        <div class="tc sel">10:00 â 11:00</div>
+                        <div class="tc busy">14:00 â 15:00</div>
                     </div>
                     <div class="tcol">
-                        <div class="tc">11:00 – 12:00</div>
-                        <div class="tc">15:00 – 16:00</div>
+                        <div class="tc">11:00 â 12:00</div>
+                        <div class="tc">15:00 â 16:00</div>
                     </div>
                     <div class="tcol">
-                        <div class="tc">16:00 – 17:00</div>
-                        <div class="tc busy">17:00 – 18:00</div>
+                        <div class="tc">16:00 â 17:00</div>
+                        <div class="tc busy">17:00 â 18:00</div>
                     </div>
                 </div>
             </div>
@@ -176,156 +176,195 @@ html{scrollbar-width:none}
 (function(){
     var thumbFn;
 
-    function layout(){
-        var vh = window.innerHeight;
-        var sc = document.querySelector('.screen');
-        var content = document.querySelector('.content');
-        var svcScroll = document.querySelector('.svc-scroll');
-        var calGrid = document.querySelector('.cal-grid');
-        var cells = document.querySelectorAll('.cd');
-        var nonEmpty = document.querySelectorAll('.cd:not(.empty)');
-        var rows = document.querySelectorAll('.sr');
-        var tcs = document.querySelectorAll('.tc');
-        var btn = document.querySelector('.btn');
-        if(!nonEmpty.length || !rows.length || !tcs.length) return;
+    /*
+ * Layout engine v2 â "3 rows, equal gaps, absorb the rest"
+ *
+ * HARD RULES:
+ *   - Service scroll ALWAYS shows exactly 3 rows (2 on ultra-short screens < 640px)
+ *   - Gaps between all 4 sections (service, calendar, timeslots, button) are EQUAL
+ *   - Surplus space is absorbed into elements 1px at a time round-robin
+ *   - iPhone 12 Pro (390Ã844) is the gold standard â ideal sizes tuned to it
+ *
+ * ALGORITHM:
+ *   1. Reset all dynamic styles
+ *   2. Measure fixed chrome (header+progress, labels, cal header, ts header)
+ *   3. Hard-lock service scroll to exactly 3 rows
+ *   4. Scale flexible elements (cell height, tc height, btn padding, svc padding) by sf
+ *   5. Measure total used height
+ *   6. Remaining space / 3 = equal gap between sections
+ *   7. If gap > 18px or < 6px, absorb into/from elements round-robin
+ *   8. Re-measure, set final equal gaps
+ */
 
-        var NUM_CONTENT_GAPS = 2;
+function layout(){
+    var vh = window.innerHeight;
+    var sc = document.querySelector('.screen');
+    var content = document.querySelector('.content');
+    var svcScroll = document.querySelector('.svc-scroll');
+    var calGrid = document.querySelector('.cal-grid');
+    var cells = [].slice.call(document.querySelectorAll('.cd'));
+    var nonEmpty = [].slice.call(document.querySelectorAll('.cd:not(.empty)'));
+    var rows = [].slice.call(document.querySelectorAll('.sr'));
+    var tcs = [].slice.call(document.querySelectorAll('.tc'));
+    var btn = document.querySelector('.btn');
+    var sLbl = document.querySelector('.section .lbl');
+    var cHead = document.querySelector('.cal-head');
+    var cWk = document.querySelector('.cal-wk');
+    var tHead = document.querySelector('.tslot-head');
 
-        /* 1 - Reset */
-        cells.forEach(function(c){ c.style.height=''; c.style.fontSize=''; });
-        rows.forEach(function(r){ r.style.paddingTop=''; r.style.paddingBottom=''; });
-        tcs.forEach(function(t){ t.style.height=''; });
-        svcScroll.style.maxHeight='none';
-        btn.style.paddingTop=''; btn.style.paddingBottom='';
-        btn.style.marginTop='';
-        content.style.gap='0px';
-        for(var ri=0;ri<content.children.length;ri++) content.children[ri].style.marginTop='';
-        sc.style.paddingTop='';
+    if(!nonEmpty.length || !rows.length || !tcs.length || !btn) return;
 
-        /* 2 - Measure chrome */
-        var scS = getComputedStyle(sc);
-        var basePadTop = parseFloat(scS.paddingTop);
-        var padBot = parseFloat(scS.paddingBottom);
-        var hdrH = sc.children[0].getBoundingClientRect().height;
-        var sLbl = document.querySelector('.section .lbl');
-        var sFixH = sLbl.getBoundingClientRect().height + parseFloat(getComputedStyle(sLbl).marginBottom);
-        var cHead = document.querySelector('.cal-head');
-        var cWk = document.querySelector('.cal-wk');
-        var cFixH = cHead.getBoundingClientRect().height + parseFloat(getComputedStyle(cHead).marginBottom) + cWk.getBoundingClientRect().height + parseFloat(getComputedStyle(cWk).marginBottom);
-        var tHead = document.querySelector('.tslot-head');
-        var tFixH = tHead.getBoundingClientRect().height + parseFloat(getComputedStyle(tHead).marginBottom);
+    /* ââ 1. Reset âââââââââââââââââââââââââââââââââââ */
+    cells.forEach(function(c){ c.style.height=''; c.style.fontSize=''; });
+    rows.forEach(function(r){ r.style.paddingTop=''; r.style.paddingBottom=''; });
+    tcs.forEach(function(t){ t.style.height=''; });
+    svcScroll.style.maxHeight = 'none';
+    btn.style.paddingTop=''; btn.style.paddingBottom='';
+    content.style.gap = '0px';
+    for(var i=0; i<content.children.length; i++) content.children[i].style.marginTop='';
+    if(sLbl) sLbl.style.marginBottom='';
+    if(cHead) cHead.style.marginBottom='';
+    if(tHead) tHead.style.marginBottom='';
+    sc.style.paddingTop='';
 
-        /* 3 - Available height */
-        var fixedChrome = basePadTop + padBot + hdrH + sFixH + cFixH + tFixH;
-        var available = vh - fixedChrome;
-        var firstRowS = getComputedStyle(rows[0]);
-        var rowContentH = rows[0].getBoundingClientRect().height - parseFloat(firstRowS.paddingTop) - parseFloat(firstRowS.paddingBottom);
-        var rowGap = parseFloat(firstRowS.marginBottom) || 6;
-        var cw = nonEmpty[0].offsetWidth;
-        var nCalRows = Math.ceil(calGrid.children.length / 7);
-        var calGaps = (nCalRows - 1) * 3;
+    /* ââ 2. Measure fixed chrome ââââââââââââââââââââ */
+    var scS = getComputedStyle(sc);
+    var padTop = parseFloat(scS.paddingTop);
+    var padBot = parseFloat(scS.paddingBottom);
+    var headerH = sc.children[0].getBoundingClientRect().height;
 
-        /* 4 - Ideal sizes */
-        var IDEAL_SVC_PAD = 14;
-        var IDEAL_TC_H = 44;
-        var IDEAL_BTN_H = Math.round(IDEAL_TC_H * 1.3);
-        var IDEAL_GAP = 10;
-        var MIN_GAP = 6;
-        var idealRowH = rowContentH + 2 * IDEAL_SVC_PAD + rowGap;
-        var idealCellH = cw;
-        var idealCalH = nCalRows * idealCellH + calGaps;
-        var idealTsH = 2 * IDEAL_TC_H + 6;
-        var idealSvc3 = 3 * idealRowH;
-        var idealTotal = idealSvc3 + idealCalH + idealTsH + IDEAL_BTN_H + (NUM_CONTENT_GAPS + 1) * IDEAL_GAP;
-        var sf = available / idealTotal;
+    var lblH = sLbl.getBoundingClientRect().height + parseFloat(getComputedStyle(sLbl).marginBottom);
 
-        /* 5 - Scroll mode (landscape / very short) */
-        if(sf < 0.7){
-            var scrollCellH = Math.min(cw, 56); scrollCellH = Math.max(scrollCellH, 24);
-            cells.forEach(function(c){ c.style.height = scrollCellH + 'px'; });
-            if(scrollCellH < 28) cells.forEach(function(c){ c.style.fontSize = '11px'; });
-            rows.forEach(function(r){ r.style.paddingTop = '10px'; r.style.paddingBottom = '10px'; });
-            if(rows.length >= 3){
-                var t0s = rows[0].getBoundingClientRect().top;
-                var b2s = rows[2].getBoundingClientRect().bottom;
-                svcScroll.style.maxHeight = Math.ceil(b2s - t0s + rowGap) + 'px';
-            }
-            tcs.forEach(function(t){ t.style.height = '36px'; });
-            var sBtnPad = Math.max(10, Math.round((42 - 19) / 2));
-            btn.style.paddingTop = sBtnPad + 'px'; btn.style.paddingBottom = sBtnPad + 'px';
-            content.children[1].style.marginTop = '8px';
-            content.children[2].style.marginTop = '8px';
-            btn.style.marginTop = 'auto';
-            if(thumbFn) thumbFn();
-            return;
+    var calChromeH = cHead.getBoundingClientRect().height
+        + parseFloat(getComputedStyle(cHead).marginBottom)
+        + cWk.getBoundingClientRect().height
+        + parseFloat(getComputedStyle(cWk).marginBottom);
+
+    var tsChromeH = tHead.getBoundingClientRect().height
+        + parseFloat(getComputedStyle(tHead).marginBottom);
+
+    /* ââ 3. Measure natural row metrics âââââââââââââ */
+    var rowNatPad = parseFloat(getComputedStyle(rows[0]).paddingTop);
+    var rowContentH = rows[0].getBoundingClientRect().height - 2*rowNatPad;
+    var rowGap = parseFloat(getComputedStyle(rows[0]).marginBottom) || 8;
+    var cellW = nonEmpty[0].offsetWidth;
+    var nCalRows = Math.ceil(calGrid.children.length / 7);
+
+    /* ââ 4. Determine visible row count âââââââââââââ */
+    /* HARD RULE: 3 rows. Only drop to 2 on ultra-short screens. */
+    var VIS = (vh < 640) ? 2 : 3;
+    VIS = Math.min(VIS, rows.length);
+
+    /* ââ 5. Scale factor & ideal sizes ââââââââââââââ */
+    /* Gold standard: iPhone 12 Pro at 844px */
+    var sf = vh / 844;
+
+    var I_PAD = 14;
+    var I_CELL = Math.min(cellW, 52);
+    var I_TC = 44;
+    var I_BTN = 19;
+    var CAL_G = 3;
+    var TS_G = 6;
+
+    /* Clamp scale factor */
+    var s = Math.max(0.72, Math.min(sf, 1.35));
+
+    var svcPad = Math.max(8, Math.min(20, Math.round(I_PAD * s)));
+    var cellH = Math.max(26, Math.min(52, Math.round(I_CELL * s)));
+    var tcH = Math.max(32, Math.min(52, Math.round(I_TC * s)));
+    var btnPad = Math.max(10, Math.min(24, Math.round(I_BTN * s)));
+
+    /* ââ 6. Apply scaled sizes ââââââââââââââââââââââ */
+    rows.forEach(function(r){
+        r.style.paddingTop = svcPad + 'px';
+        r.style.paddingBottom = svcPad + 'px';
+    });
+
+    cells.forEach(function(c){ c.style.height = cellH + 'px'; });
+    if(cellH < 28) cells.forEach(function(c){ c.style.fontSize = '11px'; });
+
+    tcs.forEach(function(t){ t.style.height = tcH + 'px'; });
+
+    btn.style.paddingTop = btnPad + 'px';
+    btn.style.paddingBottom = btnPad + 'px';
+
+    /* ââ 7. HARD CLIP service scroll to exactly VIS rows ââ */
+    var t0 = rows[0].getBoundingClientRect().top;
+    var bN = rows[Math.min(VIS-1, rows.length-1)].getBoundingClientRect().bottom;
+    svcScroll.style.maxHeight = Math.floor(bN - t0) + 'px';
+
+    /* ââ 8. Measure total used, calculate equal gap ââ */
+    var contentArea = vh - padTop - padBot - headerH;
+    var usedH = 0;
+    for(var ci=0; ci<content.children.length; ci++){
+        usedH += content.children[ci].getBoundingClientRect().height;
+    }
+    var remainder = contentArea - usedH;
+    var nGaps = 3; /* serviceâcalendar, calendarâtimeslots, timeslotsâbutton */
+    var gap = Math.floor(remainder / nGaps);
+
+    /* ââ 9. If gap is too big, absorb into elements ââ */
+    /* Target gap range: 6â18px. If outside, redistribute. */
+    var MAX_GAP = 18;
+    var MIN_GAP = 6;
+    var maxRounds = 5;
+
+    for(var rd=0; rd<maxRounds && gap>MAX_GAP; rd++){
+        /* Too much space â grow elements to eat it */
+        var grew = false;
+        if(svcPad < 20){ svcPad++; rows.forEach(function(r){ r.style.paddingTop=svcPad+'px'; r.style.paddingBottom=svcPad+'px'; }); grew=true; }
+        if(cellH < 52){ cellH++; cells.forEach(function(c){ c.style.height=cellH+'px'; }); grew=true; }
+        if(tcH < 52){ tcH++; tcs.forEach(function(t){ t.style.height=tcH+'px'; }); grew=true; }
+        if(btnPad < 24){ btnPad++; btn.style.paddingTop=btnPad+'px'; btn.style.paddingBottom=btnPad+'px'; grew=true; }
+        if(!grew) break;
+
+        /* Re-clip service scroll after padding change */
+        t0 = rows[0].getBoundingClientRect().top;
+        bN = rows[Math.min(VIS-1, rows.length-1)].getBoundingClientRect().bottom;
+        svcScroll.style.maxHeight = Math.floor(bN - t0) + 'px';
+
+        /* Re-measure */
+        usedH = 0;
+        for(var ci2=0; ci2<content.children.length; ci2++){
+            usedH += content.children[ci2].getBoundingClientRect().height;
         }
+        remainder = contentArea - usedH;
+        gap = Math.floor(remainder / nGaps);
+    }
 
-        /* 6 - Scale header on constrained screens */
-        if(sf < 0.90){
-            var chromeSave = Math.round((1.0 - sf) * basePadTop * 0.5);
-            chromeSave = Math.min(chromeSave, Math.round(basePadTop * 0.4));
-            sc.style.paddingTop = (basePadTop - chromeSave) + 'px';
-            available += chromeSave;
-            sf = available / idealTotal;
+    for(var rd2=0; rd2<maxRounds && gap<MIN_GAP; rd2++){
+        /* Not enough space â shrink elements */
+        var shrunk = false;
+        if(svcPad > 8){ svcPad--; rows.forEach(function(r){ r.style.paddingTop=svcPad+'px'; r.style.paddingBottom=svcPad+'px'; }); shrunk=true; }
+        if(cellH > 26){ cellH--; cells.forEach(function(c){ c.style.height=cellH+'px'; }); shrunk=true; }
+        if(tcH > 32){ tcH--; tcs.forEach(function(t){ t.style.height=tcH+'px'; }); shrunk=true; }
+        if(btnPad > 10){ btnPad--; btn.style.paddingTop=btnPad+'px'; btn.style.paddingBottom=btnPad+'px'; shrunk=true; }
+        if(!shrunk) break;
+
+        /* Re-clip */
+        t0 = rows[0].getBoundingClientRect().top;
+        bN = rows[Math.min(VIS-1, rows.length-1)].getBoundingClientRect().bottom;
+        svcScroll.style.maxHeight = Math.floor(bN - t0) + 'px';
+
+        /* Re-measure */
+        usedH = 0;
+        for(var ci3=0; ci3<content.children.length; ci3++){
+            usedH += content.children[ci3].getBoundingClientRect().height;
         }
+        remainder = contentArea - usedH;
+        gap = Math.floor(remainder / nGaps);
+    }
 
-        /* 7 - Visible rows */
-        var visibleRows = 3;
-        if(sf >= 1.10 && rows.length > 3){
-            for(var tr = Math.min(rows.length, 4); tr > 3; tr--){
-                var tryTotal = tr * idealRowH + idealCalH + idealTsH + IDEAL_BTN_H + (NUM_CONTENT_GAPS + 1) * IDEAL_GAP;
-                if(available / tryTotal >= 1.10){ visibleRows = tr; break; }
-            }
-        }
+    /* ââ 10. Final gap â always equal, always at least 4px ââ */
+    gap = Math.max(4, gap);
 
-        /* 8 - Proportional scaling */
-        var s = Math.min(sf, 1.0);
-        var svcPad = Math.max(6, Math.round(IDEAL_SVC_PAD * s));
-        rows.forEach(function(r){ r.style.paddingTop = svcPad + 'px'; r.style.paddingBottom = svcPad + 'px'; });
-
-        var t0 = rows[0].getBoundingClientRect().top;
-        var bN = rows[Math.min(visibleRows - 1, rows.length - 1)].getBoundingClientRect().bottom;
-        var baseSvcMaxH = Math.floor(bN - t0);
-        if(rows.length > visibleRows) svcScroll.style.maxHeight = baseSvcMaxH + 'px';
-
-        var cellH = Math.max(20, Math.round(idealCellH * s));
-        cells.forEach(function(c){ c.style.height = cellH + 'px'; });
-        if(cellH < 28) cells.forEach(function(c){ c.style.fontSize = '11px'; });
-
-        var tcH = Math.min(56, Math.max(28, Math.round(IDEAL_TC_H * s)));
-        tcs.forEach(function(t){ t.style.height = tcH + 'px'; });
-
-        var btnH = Math.round(IDEAL_BTN_H * s);
-        btnH = Math.max(btnH, tcH + 4);
-        if(sf > 1.0) btnH = Math.round(IDEAL_BTN_H * Math.min(sf, 1.25));
-        var btnPad = Math.max(10, Math.round((btnH - 19) / 2));
-        btn.style.paddingTop = btnPad + 'px'; btn.style.paddingBottom = btnPad + 'px';
-
-        /* 9 - Gaps via margins, button pinned to bottom */
-        var contentH = vh - parseFloat(getComputedStyle(sc).paddingTop) - padBot - hdrH;
-        var totalChildH = 0;
-        for(var ci = 0; ci < content.children.length; ci++) totalChildH += content.children[ci].getBoundingClientRect().height;
-        var spaceForLayout = contentH - totalChildH;
-
-        if(spaceForLayout < (NUM_CONTENT_GAPS + 1) * MIN_GAP){
-            var deficit = ((NUM_CONTENT_GAPS + 1) * MIN_GAP) - spaceForLayout;
-            var curSvcH = svcScroll.offsetHeight;
-            var minSvcH = rows[0].getBoundingClientRect().height * 2 + rowGap;
-            svcScroll.style.maxHeight = Math.ceil(Math.max(minSvcH, curSvcH - deficit)) + 'px';
-            totalChildH = 0;
-            for(var ci2 = 0; ci2 < content.children.length; ci2++) totalChildH += content.children[ci2].getBoundingClientRect().height;
-            spaceForLayout = contentH - totalChildH;
-        }
-
-        var contentGap = Math.min(20, Math.max(MIN_GAP, Math.round(spaceForLayout / (NUM_CONTENT_GAPS + 1))));
-        content.children[1].style.marginTop = contentGap + 'px';
-        content.children[2].style.marginTop = contentGap + 'px';
-        btn.style.marginTop = 'auto';
-
-        /* Step 10 removed */
+    for(var gi=1; gi<content.children.length; gi++){
+        content.children[gi].style.marginTop = gap + 'px';
+    }
 
     if(thumbFn) thumbFn();
-    }
+}
+
     function initServiceSelect(){
 var rows=document.querySelectorAll(".svc-scroll .sr:not(.other)");
 rows.forEach(function(row){
