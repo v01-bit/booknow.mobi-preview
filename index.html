@@ -335,8 +335,8 @@ var current=null;
 for(var i=0;i<colours.length;i++){if(row.classList.contains(colours[i])){current=colours[i];break;}}
 if(current){row.classList.remove(current);updateSvcIcon(row,false);return;}
 var container=row.closest(".svc-scroll");
-var count=container.querySelectorAll(".sr.sel-a,.sr.sel-b").length;
-var pick=colours[count%colours.length];
+var allRows=Array.prototype.slice.call(container.querySelectorAll(".sr:not(.other)"));
+var pick=colours[allRows.indexOf(row)%colours.length];
 row.classList.add(pick);
 updateSvcIcon(row,true);
 });
