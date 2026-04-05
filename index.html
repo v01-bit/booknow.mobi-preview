@@ -189,169 +189,153 @@ html{scrollbar-width:none}
         var btn = document.querySelector('.btn');
         if(!nonEmpty.length || !rows.length || !tcs.length) return;
 
-        var NUM_GAPS = 3; /* services↔calendar, calendar↔timeslots, timeslots↔button */
+        var NUM_CONTENT_GAPS = 2;
 
-        /* 1 — Reset all dynamic styles */
+        /* 1 - Reset */
         cells.forEach(function(c){ c.style.height=''; c.style.fontSize=''; });
         rows.forEach(function(r){ r.style.paddingTop=''; r.style.paddingBottom=''; });
         tcs.forEach(function(t){ t.style.height=''; });
         svcScroll.style.maxHeight='none';
         btn.style.paddingTop=''; btn.style.paddingBottom='';
         btn.style.marginTop='';
-        content.style.gap='0px'; /* zero gap for clean measurement */
+        content.style.gap='0px';
+        for(var ri=0;ri<content.children.length;ri++) content.children[ri].style.marginTop='';
+        sc.style.paddingTop='';
 
-        /* 2 — Measure fixed chrome for scale-factor calculation */
+        /* 2 - Measure chrome */
         var scS = getComputedStyle(sc);
-        var padY = parseFloat(scS.paddingTop) + parseFloat(scS.paddingBottom);
+        var basePadTop = parseFloat(scS.paddingTop);
+        var padBot = parseFloat(scS.paddingBottom);
         var hdrH = sc.children[0].getBoundingClientRect().height;
         var sLbl = document.querySelector('.section .lbl');
         var sFixH = sLbl.getBoundingClientRect().height + parseFloat(getComputedStyle(sLbl).marginBottom);
         var cHead = document.querySelector('.cal-head');
         var cWk = document.querySelector('.cal-wk');
-        var cFixH = cHead.getBoundingClientRect().height + parseFloat(getComputedStyle(cHead).marginBottom)
-                  + cWk.getBoundingClientRect().height + parseFloat(getComputedStyle(cWk).marginBottom);
+        var cFixH = cHead.getBoundingClientRect().height + parseFloat(getComputedStyle(cHead).marginBottom) + cWk.getBoundingClientRect().height + parseFloat(getComputedStyle(cWk).marginBottom);
         var tHead = document.querySelector('.tslot-head');
         var tFixH = tHead.getBoundingClientRect().height + parseFloat(getComputedStyle(tHead).marginBottom);
 
-        /* 3 — Available height for dynamic content + gaps */
-        var fixedChrome = padY + hdrH + sFixH + cFixH + tFixH;
+        /* 3 - Available height */
+        var fixedChrome = basePadTop + padBot + hdrH + sFixH + cFixH + tFixH;
         var available = vh - fixedChrome;
-
-        /* 4 — Measure content for ideal calculations */
         var firstRowS = getComputedStyle(rows[0]);
-        var rowContentH = rows[0].getBoundingClientRect().height
-                        - parseFloat(firstRowS.paddingTop) - parseFloat(firstRowS.paddingBottom);
+        var rowContentH = rows[0].getBoundingClientRect().height - parseFloat(firstRowS.paddingTop) - parseFloat(firstRowS.paddingBottom);
         var rowGap = parseFloat(firstRowS.marginBottom) || 6;
         var cw = nonEmpty[0].offsetWidth;
         var nCalRows = Math.ceil(calGrid.children.length / 7);
         var calGaps = (nCalRows - 1) * 3;
 
-        /* 5 — Ideal sizes (Galaxy A51 / Pixel 9 Pro XL baseline) */
+        /* 4 - Ideal sizes */
         var IDEAL_SVC_PAD = 14;
         var IDEAL_TC_H = 44;
-        var IDEAL_BTN_H = Math.round(IDEAL_TC_H * 1.3); /* 57px */
+        var IDEAL_BTN_H = Math.round(IDEAL_TC_H * 1.3);
         var IDEAL_GAP = 10;
+        var MIN_GAP = 6;
         var idealRowH = rowContentH + 2 * IDEAL_SVC_PAD + rowGap;
         var idealCellH = cw;
         var idealCalH = nCalRows * idealCellH + calGaps;
         var idealTsH = 2 * IDEAL_TC_H + 6;
-
-        /* 6 — Scale factor (gaps included in ideal total) */
         var idealSvc3 = 3 * idealRowH;
-        var idealTotal = idealSvc3 + idealCalH + idealTsH + IDEAL_BTN_H + NUM_GAPS * IDEAL_GAP;
+        var idealTotal = idealSvc3 + idealCalH + idealTsH + IDEAL_BTN_H + (NUM_CONTENT_GAPS + 1) * IDEAL_GAP;
         var sf = available / idealTotal;
 
-        /* 7 — Expand service rows if surplus */
-        var visibleRows = 3;
-        if(sf >= 1.0 && rows.length > 3){
-            for(var tr = Math.min(rows.length, 6); tr > 3; tr--){
-                var tryTotal = tr * idealRowH + idealCalH + idealTsH + IDEAL_BTN_H + NUM_GAPS * IDEAL_GAP;
-                if(available / tryTotal >= 1.10){
-                    visibleRows = tr;
-                    break;
-                }
-            }
-            idealTotal = visibleRows * idealRowH + idealCalH + idealTsH + IDEAL_BTN_H + NUM_GAPS * IDEAL_GAP;
-            sf = available / idealTotal;
-        }
-
-        /* 8 — Constrained mode (sf < 0.85) */
-        if(sf < 0.85){
-            idealTotal = idealSvc3 + idealCalH + idealTsH + IDEAL_BTN_H + NUM_GAPS * IDEAL_GAP;
-            sf = available / idealTotal;
-            visibleRows = 3;
-        }
-
-        /* 9 — Very constrained (landscape / short screens): scroll mode */
+        /* 5 - Scroll mode (landscape / very short) */
         if(sf < 0.7){
-            var scrollCellH = Math.min(cw, 56);
-            scrollCellH = Math.max(scrollCellH, 24);
+            var scrollCellH = Math.min(cw, 56); scrollCellH = Math.max(scrollCellH, 24);
             cells.forEach(function(c){ c.style.height = scrollCellH + 'px'; });
             if(scrollCellH < 28) cells.forEach(function(c){ c.style.fontSize = '11px'; });
-
             rows.forEach(function(r){ r.style.paddingTop = '10px'; r.style.paddingBottom = '10px'; });
             if(rows.length >= 3){
-                var t0 = rows[0].getBoundingClientRect().top;
-                var b2 = rows[2].getBoundingClientRect().bottom;
-                svcScroll.style.maxHeight = Math.ceil(b2 - t0) + 'px';
+                var t0s = rows[0].getBoundingClientRect().top;
+                var b2s = rows[2].getBoundingClientRect().bottom;
+                svcScroll.style.maxHeight = Math.ceil(b2s - t0s + rowGap) + 'px';
             }
-
             tcs.forEach(function(t){ t.style.height = '36px'; });
             var sBtnPad = Math.max(10, Math.round((42 - 19) / 2));
-            btn.style.paddingTop = sBtnPad + 'px';
-            btn.style.paddingBottom = sBtnPad + 'px';
-
-            content.style.gap = '8px';
+            btn.style.paddingTop = sBtnPad + 'px'; btn.style.paddingBottom = sBtnPad + 'px';
+            content.children[1].style.marginTop = '8px';
+            content.children[2].style.marginTop = '8px';
+            btn.style.marginTop = 'auto';
             if(thumbFn) thumbFn();
             return;
         }
 
-        /* 10 — Normal mode: proportional scaling */
-        var s = Math.min(sf, 1.0);
-
-        /* === SERVICES === */
-        var svcPad = Math.max(6, Math.round(IDEAL_SVC_PAD * s));
-        rows.forEach(function(r){ r.style.paddingTop = svcPad + 'px'; r.style.paddingBottom = svcPad + 'px'; });
-        if(rows.length > visibleRows){
-            var t0 = rows[0].getBoundingClientRect().top;
-            var bN = rows[visibleRows - 1].getBoundingClientRect().bottom;
-            svcScroll.style.maxHeight = Math.ceil(bN - t0) + 'px';
+        /* 6 - Scale header on constrained screens */
+        if(sf < 0.90){
+            var chromeSave = Math.round((1.0 - sf) * basePadTop * 0.5);
+            chromeSave = Math.min(chromeSave, Math.round(basePadTop * 0.4));
+            sc.style.paddingTop = (basePadTop - chromeSave) + 'px';
+            available += chromeSave;
+            sf = available / idealTotal;
         }
 
-        /* === CALENDAR === */
-        var cellH = Math.round(idealCellH * s);
-        cellH = Math.max(cellH, 20);
+        /* 7 - Visible rows */
+        var visibleRows = 3;
+        if(sf >= 1.10 && rows.length > 3){
+            for(var tr = Math.min(rows.length, 4); tr > 3; tr--){
+                var tryTotal = tr * idealRowH + idealCalH + idealTsH + IDEAL_BTN_H + (NUM_CONTENT_GAPS + 1) * IDEAL_GAP;
+                if(available / tryTotal >= 1.10){ visibleRows = tr; break; }
+            }
+        }
+
+        /* 8 - Proportional scaling */
+        var s = Math.min(sf, 1.0);
+        var svcPad = Math.max(6, Math.round(IDEAL_SVC_PAD * s));
+        rows.forEach(function(r){ r.style.paddingTop = svcPad + 'px'; r.style.paddingBottom = svcPad + 'px'; });
+
+        var t0 = rows[0].getBoundingClientRect().top;
+        var bN = rows[Math.min(visibleRows - 1, rows.length - 1)].getBoundingClientRect().bottom;
+        var baseSvcMaxH = Math.ceil(bN - t0 + rowGap);
+        if(rows.length > visibleRows) svcScroll.style.maxHeight = baseSvcMaxH + 'px';
+
+        var cellH = Math.max(20, Math.round(idealCellH * s));
         cells.forEach(function(c){ c.style.height = cellH + 'px'; });
         if(cellH < 28) cells.forEach(function(c){ c.style.fontSize = '11px'; });
 
-        /* === TIME SLOTS === */
-        var tcH = Math.round(IDEAL_TC_H * s);
-        tcH = Math.max(tcH, 28); tcH = Math.min(tcH, 56);
+        var tcH = Math.min(56, Math.max(28, Math.round(IDEAL_TC_H * s)));
         tcs.forEach(function(t){ t.style.height = tcH + 'px'; });
 
-        /* === BUTTON (larger than time slots) === */
         var btnH = Math.round(IDEAL_BTN_H * s);
         btnH = Math.max(btnH, tcH + 4);
         if(sf > 1.0) btnH = Math.round(IDEAL_BTN_H * Math.min(sf, 1.25));
         var btnPad = Math.max(10, Math.round((btnH - 19) / 2));
-        btn.style.paddingTop = btnPad + 'px';
-        btn.style.paddingBottom = btnPad + 'px';
+        btn.style.paddingTop = btnPad + 'px'; btn.style.paddingBottom = btnPad + 'px';
 
-        /* 11 — CALCULATE CONTENT BOX HEIGHT, DISTRIBUTE GAPS EVENLY */
-        /* Use math (vh - padY - hdrH) not DOM measurement, because
-           min-height:100vh on .screen inflates getBoundingClientRect
-           when children overflow */
-        var contentH = vh - padY - hdrH;
+        /* 9 - Gaps via margins, button pinned to bottom */
+        var contentH = vh - parseFloat(getComputedStyle(sc).paddingTop) - padBot - hdrH;
         var totalChildH = 0;
-        for(var ci = 0; ci < content.children.length; ci++){
-            totalChildH += content.children[ci].getBoundingClientRect().height;
-        }
-        var remaining = contentH - totalChildH;
+        for(var ci = 0; ci < content.children.length; ci++) totalChildH += content.children[ci].getBoundingClientRect().height;
+        var spaceForLayout = contentH - totalChildH;
 
-        /* If content overflows: compress svc-scroll to recover space */
-        if(remaining < NUM_GAPS * 8){
-            var deficit = (NUM_GAPS * 8) - remaining;
+        if(spaceForLayout < (NUM_CONTENT_GAPS + 1) * MIN_GAP){
+            var deficit = ((NUM_CONTENT_GAPS + 1) * MIN_GAP) - spaceForLayout;
             var curSvcH = svcScroll.offsetHeight;
-            var minSvcH = rows[0].getBoundingClientRect().height + 2; /* at least 1 row */
-            var newSvcH = Math.max(minSvcH, curSvcH - deficit);
-            svcScroll.style.maxHeight = Math.ceil(newSvcH) + 'px';
-            /* Re-measure after compression */
+            var minSvcH = rows[0].getBoundingClientRect().height * 2 + rowGap;
+            svcScroll.style.maxHeight = Math.ceil(Math.max(minSvcH, curSvcH - deficit)) + 'px';
             totalChildH = 0;
-            for(var ci2 = 0; ci2 < content.children.length; ci2++){
-                totalChildH += content.children[ci2].getBoundingClientRect().height;
-            }
-            remaining = contentH - totalChildH;
+            for(var ci2 = 0; ci2 < content.children.length; ci2++) totalChildH += content.children[ci2].getBoundingClientRect().height;
+            spaceForLayout = contentH - totalChildH;
         }
 
-        /* Distribute remaining space evenly across all gaps */
-        var gap = Math.round(remaining / NUM_GAPS);
-        gap = Math.max(8, gap);  /* minimum 8px */
-        gap = Math.min(20, gap); /* maximum 20px */
-        content.style.gap = gap + 'px';
+        var contentGap = Math.min(20, Math.max(MIN_GAP, Math.round(spaceForLayout / (NUM_CONTENT_GAPS + 1))));
+        content.children[1].style.marginTop = contentGap + 'px';
+        content.children[2].style.marginTop = contentGap + 'px';
+        btn.style.marginTop = 'auto';
+
+        /* 10 - Surplus into svc-scroll for scroll hint */
+        var btnRect = btn.getBoundingClientRect();
+        var tsSectionBot = content.children[2].getBoundingClientRect().bottom;
+        var excessAboveBtn = Math.max(0, (btnRect.top - tsSectionBot) - contentGap);
+
+        if(excessAboveBtn > 10 && rows.length > visibleRows){
+            var nextRowH = rows[visibleRows] ? rows[visibleRows].getBoundingClientRect().height + rowGap : 69;
+            var svcGrowth = Math.min(excessAboveBtn, nextRowH);
+            var curMaxH = parseInt(svcScroll.style.maxHeight) || svcScroll.offsetHeight;
+            svcScroll.style.maxHeight = (curMaxH + svcGrowth) + 'px';
+        }
 
         if(thumbFn) thumbFn();
     }
-
     function initServiceSelect(){
 var rows=document.querySelectorAll(".svc-scroll .sr:not(.other)");
 rows.forEach(function(row){
