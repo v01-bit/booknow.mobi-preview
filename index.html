@@ -318,7 +318,7 @@ html{scrollbar-width:none}
         }
 
         var contentGap = Math.min(20, Math.max(MIN_GAP, Math.round(spaceForLayout / (NUM_CONTENT_GAPS + 1))));
-        content.children[1].style.marginTop = (contentGap + 1) + 'px'; /* +1px buffer svc-to-cal */
+        content.children[1].style.marginTop = contentGap + 'px';
         content.children[2].style.marginTop = contentGap + 'px';
         btn.style.marginTop = 'auto';
 
