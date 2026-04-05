@@ -246,7 +246,7 @@ html{scrollbar-width:none}
         if(sf >= 1.0 && rows.length > 3){
             for(var tr = Math.min(rows.length, 6); tr > 3; tr--){
                 var tryTotal = tr * idealRowH + idealCalH + idealTsH + IDEAL_BTN_H + NUM_GAPS * IDEAL_GAP;
-                if(available / tryTotal >= 0.95){
+                if(available / tryTotal >= 1.10){
                     visibleRows = tr;
                     break;
                 }
