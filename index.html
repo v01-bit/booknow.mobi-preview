@@ -6,7 +6,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="theme-color" content="#2D2D2D">
-<title>BookNow â Book a Service</title>
+<title>BookNow — Book a Service</title>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
@@ -132,7 +132,7 @@ html{scrollbar-width:none}
             </div>
         </div>
         <div class="section">
-            <div class="cal-head"><span class="mo">April 2026</span><div class="arrows"><button class="arr">â¹</button><button class="arr">âº</button></div></div>
+            <div class="cal-head"><span class="mo">April 2026</span><div class="arrows"><button class="arr">‹</button><button class="arr">›</button></div></div>
             <div class="cal-wk"><span>M</span><span>T</span><span>W</span><span>T</span><span>F</span><span>S</span><span>S</span></div>
             <div class="cal-grid">
                 <div class="cd empty"></div><div class="cd empty"></div><div class="cd past">1</div><div class="cd past">2</div><div class="cd past">3</div><div class="cd past">4</div><div class="cd past">5</div>
@@ -143,28 +143,28 @@ html{scrollbar-width:none}
             </div>
         </div>
         <div class="section">
-            <div class="tslot-head"><span class="tlbl">Time slot â Tue 8 Apr</span><div class="arrows"><button class="arr" onclick="document.querySelector('.tscroll').scrollBy({left:-120,behavior:'smooth'})">â¹</button><button class="arr" onclick="document.querySelector('.tscroll').scrollBy({left:120,behavior:'smooth'})">âº</button></div></div>
+            <div class="tslot-head"><span class="tlbl">Time slot — Tue 8 Apr</span><div class="arrows"><button class="arr" onclick="document.querySelector('.tscroll').scrollBy({left:-120,behavior:'smooth'})">‹</button><button class="arr" onclick="document.querySelector('.tscroll').scrollBy({left:120,behavior:'smooth'})">›</button></div></div>
             <div class="tscroll-wrap">
                 <div class="tscroll">
                     <div class="tcol">
-                        <div class="tc busy">8:00 â 9:00</div>
-                        <div class="tc">12:00 â 13:00</div>
+                        <div class="tc busy">8:00 – 9:00</div>
+                        <div class="tc">12:00 – 13:00</div>
                     </div>
                     <div class="tcol">
-                        <div class="tc busy">9:00 â 10:00</div>
-                        <div class="tc">13:00 â 14:00</div>
+                        <div class="tc busy">9:00 – 10:00</div>
+                        <div class="tc">13:00 – 14:00</div>
                     </div>
                     <div class="tcol">
-                        <div class="tc sel">10:00 â 11:00</div>
-                        <div class="tc busy">14:00 â 15:00</div>
+                        <div class="tc sel">10:00 – 11:00</div>
+                        <div class="tc busy">14:00 – 15:00</div>
                     </div>
                     <div class="tcol">
-                        <div class="tc">11:00 â 12:00</div>
-                        <div class="tc">15:00 â 16:00</div>
+                        <div class="tc">11:00 – 12:00</div>
+                        <div class="tc">15:00 – 16:00</div>
                     </div>
                     <div class="tcol">
-                        <div class="tc">16:00 â 17:00</div>
-                        <div class="tc busy">17:00 â 18:00</div>
+                        <div class="tc">16:00 – 17:00</div>
+                        <div class="tc busy">17:00 – 18:00</div>
                     </div>
                 </div>
             </div>
@@ -177,13 +177,13 @@ html{scrollbar-width:none}
     var thumbFn;
 
     /*
- * Layout engine v2 â "3 rows, equal gaps, absorb the rest"
+ * Layout engine v2 -- "3 rows, equal gaps, absorb the rest"
  *
  * HARD RULES:
  *   - Service scroll ALWAYS shows exactly 3 rows (2 on ultra-short screens < 640px)
  *   - Gaps between all 4 sections (service, calendar, timeslots, button) are EQUAL
  *   - Surplus space is absorbed into elements 1px at a time round-robin
- *   - iPhone 12 Pro (390Ã844) is the gold standard â ideal sizes tuned to it
+ *   - iPhone 12 Pro (390x844) is the gold standard -- ideal sizes tuned to it
  *
  * ALGORITHM:
  *   1. Reset all dynamic styles
@@ -214,7 +214,7 @@ function layout(){
 
     if(!nonEmpty.length || !rows.length || !tcs.length || !btn) return;
 
-    /* ââ 1. Reset âââââââââââââââââââââââââââââââââââ */
+    /* -- 1. Reset ----------------------------------- */
     cells.forEach(function(c){ c.style.height=''; c.style.fontSize=''; });
     rows.forEach(function(r){ r.style.paddingTop=''; r.style.paddingBottom=''; });
     tcs.forEach(function(t){ t.style.height=''; });
@@ -227,7 +227,7 @@ function layout(){
     if(tHead) tHead.style.marginBottom='';
     sc.style.paddingTop='';
 
-    /* ââ 2. Measure fixed chrome ââââââââââââââââââââ */
+    /* -- 2. Measure fixed chrome -------------------- */
     var scS = getComputedStyle(sc);
     var padTop = parseFloat(scS.paddingTop);
     var padBot = parseFloat(scS.paddingBottom);
@@ -243,19 +243,19 @@ function layout(){
     var tsChromeH = tHead.getBoundingClientRect().height
         + parseFloat(getComputedStyle(tHead).marginBottom);
 
-    /* ââ 3. Measure natural row metrics âââââââââââââ */
+    /* -- 3. Measure natural row metrics ------------- */
     var rowNatPad = parseFloat(getComputedStyle(rows[0]).paddingTop);
     var rowContentH = rows[0].getBoundingClientRect().height - 2*rowNatPad;
     var rowGap = parseFloat(getComputedStyle(rows[0]).marginBottom) || 8;
     var cellW = nonEmpty[0].offsetWidth;
     var nCalRows = Math.ceil(calGrid.children.length / 7);
 
-    /* ââ 4. Determine visible row count âââââââââââââ */
+    /* -- 4. Determine visible row count ------------- */
     /* HARD RULE: 3 rows. Only drop to 2 on ultra-short screens. */
     var VIS = (vh < 640) ? 2 : 3;
     VIS = Math.min(VIS, rows.length);
 
-    /* ââ 5. Scale factor & ideal sizes ââââââââââââââ */
+    /* -- 5. Scale factor & ideal sizes -------------- */
     /* Gold standard: iPhone 12 Pro at 844px */
     var sf = vh / 844;
 
@@ -274,7 +274,7 @@ function layout(){
     var tcH = Math.max(32, Math.min(52, Math.round(I_TC * s)));
     var btnPad = Math.max(10, Math.min(24, Math.round(I_BTN * s)));
 
-    /* ââ 6. Apply scaled sizes ââââââââââââââââââââââ */
+    /* -- 6. Apply scaled sizes ---------------------- */
     rows.forEach(function(r){
         r.style.paddingTop = svcPad + 'px';
         r.style.paddingBottom = svcPad + 'px';
@@ -288,29 +288,29 @@ function layout(){
     btn.style.paddingTop = btnPad + 'px';
     btn.style.paddingBottom = btnPad + 'px';
 
-    /* ââ 7. HARD CLIP service scroll to exactly VIS rows ââ */
+    /* -- 7. HARD CLIP service scroll to exactly VIS rows -- */
     var t0 = rows[0].getBoundingClientRect().top;
     var bN = rows[Math.min(VIS-1, rows.length-1)].getBoundingClientRect().bottom;
     svcScroll.style.maxHeight = Math.floor(bN - t0) + 'px';
 
-    /* ââ 8. Measure total used, calculate equal gap ââ */
+    /* -- 8. Measure total used, calculate equal gap -- */
     var contentArea = vh - padTop - padBot - headerH;
     var usedH = 0;
     for(var ci=0; ci<content.children.length; ci++){
         usedH += content.children[ci].getBoundingClientRect().height;
     }
     var remainder = contentArea - usedH;
-    var nGaps = 3; /* serviceâcalendar, calendarâtimeslots, timeslotsâbutton */
+    var nGaps = 3; /* service->calendar, calendar->timeslots, timeslots->button */
     var gap = Math.floor(remainder / nGaps);
 
-    /* ââ 9. If gap is too big, absorb into elements ââ */
-    /* Target gap range: 6â18px. If outside, redistribute. */
+    /* -- 9. If gap is too big, absorb into elements -- */
+    /* Target gap range: 6-18px. If outside, redistribute. */
     var MAX_GAP = 18;
     var MIN_GAP = 6;
     var maxRounds = 5;
 
     for(var rd=0; rd<maxRounds && gap>MAX_GAP; rd++){
-        /* Too much space â grow elements to eat it */
+        /* Too much space -- grow elements to eat it */
         var grew = false;
         if(svcPad < 20){ svcPad++; rows.forEach(function(r){ r.style.paddingTop=svcPad+'px'; r.style.paddingBottom=svcPad+'px'; }); grew=true; }
         if(cellH < 52){ cellH++; cells.forEach(function(c){ c.style.height=cellH+'px'; }); grew=true; }
@@ -333,7 +333,7 @@ function layout(){
     }
 
     for(var rd2=0; rd2<maxRounds && gap<MIN_GAP; rd2++){
-        /* Not enough space â shrink elements */
+        /* Not enough space -- shrink elements */
         var shrunk = false;
         if(svcPad > 8){ svcPad--; rows.forEach(function(r){ r.style.paddingTop=svcPad+'px'; r.style.paddingBottom=svcPad+'px'; }); shrunk=true; }
         if(cellH > 26){ cellH--; cells.forEach(function(c){ c.style.height=cellH+'px'; }); shrunk=true; }
@@ -355,7 +355,7 @@ function layout(){
         gap = Math.floor(remainder / nGaps);
     }
 
-    /* ââ 10. Final gap â always equal, always at least 4px ââ */
+    /* -- 10. Final gap -- always equal, always at least 4px -- */
     gap = Math.max(4, gap);
 
     for(var gi=1; gi<content.children.length; gi++){
