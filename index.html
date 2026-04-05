@@ -177,23 +177,25 @@ html{scrollbar-width:none}
     var thumbFn;
 
     /*
- * Layout engine v2 -- "3 rows, equal gaps, absorb the rest"
+ * Layout engine v3 -- "proportional scaling, 3 rows, zero clipping"
  *
  * HARD RULES:
- *   - Service scroll ALWAYS shows exactly 3 rows (2 on ultra-short screens < 640px)
- *   - Gaps between all 4 sections (service, calendar, timeslots, button) are EQUAL
- *   - Surplus space is absorbed into elements 1px at a time round-robin
- *   - iPhone 12 Pro (390x844) is the gold standard -- ideal sizes tuned to it
+ *   - Service scroll ALWAYS shows exactly 3 rows (2 if vh < 640)
+ *   - EVERYTHING scales proportionally by sf = vh / 844
+ *   - No clamped scale factor -- elements grow/shrink freely with screen
+ *   - Gaps scale proportionally too -- no fixed 6-18px range
+ *   - iPhone 12 Pro (390x844) is the gold standard (sf = 1.0)
  *
- * ALGORITHM:
- *   1. Reset all dynamic styles
- *   2. Measure fixed chrome (header+progress, labels, cal header, ts header)
- *   3. Hard-lock service scroll to exactly 3 rows
- *   4. Scale flexible elements (cell height, tc height, btn padding, svc padding) by sf
- *   5. Measure total used height
- *   6. Remaining space / 3 = equal gap between sections
- *   7. If gap > 18px or < 6px, absorb into/from elements round-robin
- *   8. Re-measure, set final equal gaps
+ * WHAT SCALES:
+ *   - Service row padding (vertical)
+ *   - Service row padding-left (icon area width)
+ *   - Service icon width
+ *   - Service row gap, margin-bottom, font sizes
+ *   - Calendar cell height, grid gap, font size
+ *   - Time slot chip height, font size
+ *   - Button padding, font size
+ *   - Section gaps (proportional, not fixed)
+ *   - Label margins
  */
 
 function layout(){
@@ -205,158 +207,150 @@ function layout(){
     var cells = [].slice.call(document.querySelectorAll('.cd'));
     var nonEmpty = [].slice.call(document.querySelectorAll('.cd:not(.empty)'));
     var rows = [].slice.call(document.querySelectorAll('.sr'));
+    var icons = [].slice.call(document.querySelectorAll('.sr .si'));
     var tcs = [].slice.call(document.querySelectorAll('.tc'));
     var btn = document.querySelector('.btn');
     var sLbl = document.querySelector('.section .lbl');
     var cHead = document.querySelector('.cal-head');
     var cWk = document.querySelector('.cal-wk');
     var tHead = document.querySelector('.tslot-head');
+    var tslotGrid = document.querySelector('.tslot-grid');
 
     if(!nonEmpty.length || !rows.length || !tcs.length || !btn) return;
 
-    /* -- 1. Reset ----------------------------------- */
+    /* -- 1. Reset all dynamic styles -- */
     cells.forEach(function(c){ c.style.height=''; c.style.fontSize=''; });
-    rows.forEach(function(r){ r.style.paddingTop=''; r.style.paddingBottom=''; });
-    tcs.forEach(function(t){ t.style.height=''; });
+    rows.forEach(function(r){
+        r.style.paddingTop=''; r.style.paddingBottom='';
+        r.style.paddingLeft=''; r.style.gap='';
+        r.style.marginBottom=''; r.style.fontSize='';
+    });
+    icons.forEach(function(ic){ ic.style.width=''; ic.style.fontSize=''; });
+    tcs.forEach(function(t){ t.style.height=''; t.style.fontSize=''; });
     svcScroll.style.maxHeight = 'none';
-    btn.style.paddingTop=''; btn.style.paddingBottom='';
+    btn.style.paddingTop=''; btn.style.paddingBottom=''; btn.style.fontSize='';
     content.style.gap = '0px';
+    if(calGrid) calGrid.style.gap = '';
+    if(tslotGrid) tslotGrid.style.gap = '';
     for(var i=0; i<content.children.length; i++) content.children[i].style.marginTop='';
     if(sLbl) sLbl.style.marginBottom='';
     if(cHead) cHead.style.marginBottom='';
     if(tHead) tHead.style.marginBottom='';
     sc.style.paddingTop='';
 
-    /* -- 2. Measure fixed chrome -------------------- */
-    var scS = getComputedStyle(sc);
-    var padTop = parseFloat(scS.paddingTop);
-    var padBot = parseFloat(scS.paddingBottom);
-    var headerH = sc.children[0].getBoundingClientRect().height;
+    /* -- 2. Scale factor -- */
+    /* Gold standard: iPhone 12 Pro at 844px. NO clamping. */
+    var sf = vh / 844;
 
-    var lblH = sLbl.getBoundingClientRect().height + parseFloat(getComputedStyle(sLbl).marginBottom);
+    /* -- 3. Ideal sizes at sf=1.0 (iPhone 12 Pro baseline) -- */
+    var I_SR_PAD_V  = 18;   /* .sr padding top/bottom */
+    var I_SR_PAD_L  = 98;   /* .sr padding-left (icon area) */
+    var I_SR_GAP    = 12;   /* .sr internal gap */
+    var I_SR_MB     = 8;    /* .sr margin-bottom */
+    var I_ICON_W    = 86;   /* .si width */
+    var I_CELL_H    = 44;   /* .cd height (will use cellW if smaller) */
+    var I_CAL_GAP   = 3;    /* .cal-grid gap */
+    var I_TC_H      = 48;   /* .tc height */
+    var I_BTN_PAD   = 12;   /* .btn padding */
+    var I_LBL_MB    = 10;   /* .lbl margin-bottom */
+    var I_CHEAD_MB  = 8;    /* .cal-head margin-bottom */
+    var I_CWK_MB    = 6;    /* .cal-wk margin-bottom */
+    var I_THEAD_MB  = 8;    /* .tslot-head margin-bottom */
+    var I_SECTION_GAP = 12; /* gap between major sections */
+    var I_SR_FS     = 16;   /* .sr font-size */
+    var I_CELL_FS   = 16;   /* .cd font-size */
+    var I_TC_FS     = 15;   /* .tc font-size */
+    var I_BTN_FS    = 16;   /* .btn font-size */
+    var I_ICON_FS   = 20;   /* .si SVG/icon font-size */
 
-    var calChromeH = cHead.getBoundingClientRect().height
-        + parseFloat(getComputedStyle(cHead).marginBottom)
-        + cWk.getBoundingClientRect().height
-        + parseFloat(getComputedStyle(cWk).marginBottom);
+    /* -- 4. Apply proportional sizes -- */
+    var srPadV  = Math.round(I_SR_PAD_V * sf);
+    var srPadL  = Math.round(I_SR_PAD_L * sf);
+    var srGap   = Math.round(I_SR_GAP * sf);
+    var srMB    = Math.round(I_SR_MB * sf);
+    var iconW   = Math.round(I_ICON_W * sf);
+    var cellW   = nonEmpty[0].offsetWidth;
+    var cellH   = Math.round(Math.min(cellW, I_CELL_H) * sf);
+    var calGap  = Math.max(1, Math.round(I_CAL_GAP * sf));
+    var tcH     = Math.round(I_TC_H * sf);
+    var btnPad  = Math.round(I_BTN_PAD * sf);
+    var lblMB   = Math.round(I_LBL_MB * sf);
+    var cHeadMB = Math.round(I_CHEAD_MB * sf);
+    var tHeadMB = Math.round(I_THEAD_MB * sf);
+    var secGap  = Math.round(I_SECTION_GAP * sf);
 
-    var tsChromeH = tHead.getBoundingClientRect().height
-        + parseFloat(getComputedStyle(tHead).marginBottom);
+    /* Font sizes -- scale but with floor to stay readable */
+    var srFS   = Math.max(12, Math.round(I_SR_FS * sf));
+    var cellFS = Math.max(11, Math.round(I_CELL_FS * sf));
+    var tcFS   = Math.max(12, Math.round(I_TC_FS * sf));
+    var btnFS  = Math.max(13, Math.round(I_BTN_FS * sf));
+    var iconFS = Math.max(16, Math.round(I_ICON_FS * sf));
 
-    /* -- 3. Measure natural row metrics ------------- */
-    var rowNatPad = parseFloat(getComputedStyle(rows[0]).paddingTop);
-    var rowContentH = rows[0].getBoundingClientRect().height - 2*rowNatPad;
-    var rowGap = parseFloat(getComputedStyle(rows[0]).marginBottom) || 8;
-    var cellW = nonEmpty[0].offsetWidth;
-    var nCalRows = Math.ceil(calGrid.children.length / 7);
+    /* Apply to service rows */
+    rows.forEach(function(r){
+        r.style.paddingTop = srPadV + 'px';
+        r.style.paddingBottom = srPadV + 'px';
+        r.style.paddingLeft = srPadL + 'px';
+        r.style.gap = srGap + 'px';
+        r.style.marginBottom = srMB + 'px';
+        r.style.fontSize = srFS + 'px';
+    });
 
-    /* -- 4. Determine visible row count ------------- */
+    /* Apply to service icons */
+    icons.forEach(function(ic){
+        ic.style.width = iconW + 'px';
+        ic.style.fontSize = iconFS + 'px';
+    });
+
+    /* Apply to calendar */
+    cells.forEach(function(c){
+        c.style.height = cellH + 'px';
+        c.style.fontSize = cellFS + 'px';
+    });
+    if(calGrid) calGrid.style.gap = calGap + 'px';
+
+    /* Apply to time slots */
+    tcs.forEach(function(t){
+        t.style.height = tcH + 'px';
+        t.style.fontSize = tcFS + 'px';
+    });
+
+    /* Apply to button */
+    btn.style.paddingTop = btnPad + 'px';
+    btn.style.paddingBottom = btnPad + 'px';
+    btn.style.fontSize = btnFS + 'px';
+
+    /* Apply label/header margins */
+    if(sLbl) sLbl.style.marginBottom = lblMB + 'px';
+    if(cHead) cHead.style.marginBottom = cHeadMB + 'px';
+    if(tHead) tHead.style.marginBottom = tHeadMB + 'px';
+
+    /* -- 5. Determine visible row count -- */
     /* HARD RULE: 3 rows. Only drop to 2 on ultra-short screens. */
     var VIS = (vh < 640) ? 2 : 3;
     VIS = Math.min(VIS, rows.length);
 
-    /* -- 5. Scale factor & ideal sizes -------------- */
-    /* Gold standard: iPhone 12 Pro at 844px */
-    var sf = vh / 844;
-
-    var I_PAD = 14;
-    var I_CELL = Math.min(cellW, 52);
-    var I_TC = 44;
-    var I_BTN = 19;
-    var CAL_G = 3;
-    var TS_G = 6;
-
-    /* Clamp scale factor */
-    var s = Math.max(0.72, Math.min(sf, 1.35));
-
-    var svcPad = Math.max(8, Math.min(20, Math.round(I_PAD * s)));
-    var cellH = Math.max(26, Math.min(52, Math.round(I_CELL * s)));
-    var tcH = Math.max(32, Math.min(52, Math.round(I_TC * s)));
-    var btnPad = Math.max(10, Math.min(24, Math.round(I_BTN * s)));
-
-    /* -- 6. Apply scaled sizes ---------------------- */
-    rows.forEach(function(r){
-        r.style.paddingTop = svcPad + 'px';
-        r.style.paddingBottom = svcPad + 'px';
-    });
-
-    cells.forEach(function(c){ c.style.height = cellH + 'px'; });
-    if(cellH < 28) cells.forEach(function(c){ c.style.fontSize = '11px'; });
-
-    tcs.forEach(function(t){ t.style.height = tcH + 'px'; });
-
-    btn.style.paddingTop = btnPad + 'px';
-    btn.style.paddingBottom = btnPad + 'px';
-
-    /* -- 7. HARD CLIP service scroll to exactly VIS rows -- */
+    /* -- 6. HARD CLIP service scroll to exactly VIS rows -- */
     var t0 = rows[0].getBoundingClientRect().top;
     var bN = rows[Math.min(VIS-1, rows.length-1)].getBoundingClientRect().bottom;
     svcScroll.style.maxHeight = Math.floor(bN - t0) + 'px';
 
-    /* -- 8. Measure total used, calculate equal gap -- */
+    /* -- 7. Measure total used, distribute remaining as equal gaps -- */
+    var scS = getComputedStyle(sc);
+    var padTop = parseFloat(scS.paddingTop);
+    var padBot = parseFloat(scS.paddingBottom);
+    var headerH = sc.children[0].getBoundingClientRect().height;
     var contentArea = vh - padTop - padBot - headerH;
+
     var usedH = 0;
     for(var ci=0; ci<content.children.length; ci++){
         usedH += content.children[ci].getBoundingClientRect().height;
     }
     var remainder = contentArea - usedH;
     var nGaps = 3; /* service->calendar, calendar->timeslots, timeslots->button */
-    var gap = Math.floor(remainder / nGaps);
 
-    /* -- 9. If gap is too big, absorb into elements -- */
-    /* Target gap range: 6-18px. If outside, redistribute. */
-    var MAX_GAP = 18;
-    var MIN_GAP = 6;
-    var maxRounds = 5;
-
-    for(var rd=0; rd<maxRounds && gap>MAX_GAP; rd++){
-        /* Too much space -- grow elements to eat it */
-        var grew = false;
-        if(svcPad < 20){ svcPad++; rows.forEach(function(r){ r.style.paddingTop=svcPad+'px'; r.style.paddingBottom=svcPad+'px'; }); grew=true; }
-        if(cellH < 52){ cellH++; cells.forEach(function(c){ c.style.height=cellH+'px'; }); grew=true; }
-        if(tcH < 52){ tcH++; tcs.forEach(function(t){ t.style.height=tcH+'px'; }); grew=true; }
-        if(btnPad < 24){ btnPad++; btn.style.paddingTop=btnPad+'px'; btn.style.paddingBottom=btnPad+'px'; grew=true; }
-        if(!grew) break;
-
-        /* Re-clip service scroll after padding change */
-        t0 = rows[0].getBoundingClientRect().top;
-        bN = rows[Math.min(VIS-1, rows.length-1)].getBoundingClientRect().bottom;
-        svcScroll.style.maxHeight = Math.floor(bN - t0) + 'px';
-
-        /* Re-measure */
-        usedH = 0;
-        for(var ci2=0; ci2<content.children.length; ci2++){
-            usedH += content.children[ci2].getBoundingClientRect().height;
-        }
-        remainder = contentArea - usedH;
-        gap = Math.floor(remainder / nGaps);
-    }
-
-    for(var rd2=0; rd2<maxRounds && gap<MIN_GAP; rd2++){
-        /* Not enough space -- shrink elements */
-        var shrunk = false;
-        if(svcPad > 8){ svcPad--; rows.forEach(function(r){ r.style.paddingTop=svcPad+'px'; r.style.paddingBottom=svcPad+'px'; }); shrunk=true; }
-        if(cellH > 26){ cellH--; cells.forEach(function(c){ c.style.height=cellH+'px'; }); shrunk=true; }
-        if(tcH > 32){ tcH--; tcs.forEach(function(t){ t.style.height=tcH+'px'; }); shrunk=true; }
-        if(btnPad > 10){ btnPad--; btn.style.paddingTop=btnPad+'px'; btn.style.paddingBottom=btnPad+'px'; shrunk=true; }
-        if(!shrunk) break;
-
-        /* Re-clip */
-        t0 = rows[0].getBoundingClientRect().top;
-        bN = rows[Math.min(VIS-1, rows.length-1)].getBoundingClientRect().bottom;
-        svcScroll.style.maxHeight = Math.floor(bN - t0) + 'px';
-
-        /* Re-measure */
-        usedH = 0;
-        for(var ci3=0; ci3<content.children.length; ci3++){
-            usedH += content.children[ci3].getBoundingClientRect().height;
-        }
-        remainder = contentArea - usedH;
-        gap = Math.floor(remainder / nGaps);
-    }
-
-    /* -- 10. Final gap -- always equal, always at least 4px -- */
-    gap = Math.max(4, gap);
+    /* Use proportional gap as baseline, but distribute any leftover evenly */
+    var gap = Math.max(4, Math.floor(remainder / nGaps));
 
     for(var gi=1; gi<content.children.length; gi++){
         content.children[gi].style.marginTop = gap + 'px';
