@@ -300,58 +300,43 @@ html{scrollbar-width:none}
         var btnPad = Math.max(10, Math.round((btnH - 19) / 2));
         btn.style.paddingTop = btnPad + 'px'; btn.style.paddingBottom = btnPad + 'px';
 
-        /* 9 - Responsive chrome + deficit chain */
+        /* 8b - Responsive header chrome */
+        var progEl = document.querySelector('.progress');
+        var chromeScale = Math.min(1, Math.max(0, (vh - 600) / 300));
+        sc.style.paddingTop = Math.max(2, Math.round(basePadTop * chromeScale)) + 'px';
+        if(progEl) progEl.style.marginTop = Math.max(2, Math.round(8 * chromeScale)) + 'px';
+
+        /* 9 - Sync svc-wrap, then allocate gaps (clean) */
         var svcWrap = document.querySelector('.svc-wrap');
         var svcScrollH = svcScroll.offsetHeight;
         svcWrap.style.height = svcScrollH + 'px';
 
-        /* 9a - Scale header chrome with viewport height */
-        var progEl = document.querySelector('.progress');
-        var CHROME_FLOOR = 2;
-        var chromeScale = Math.min(1, Math.max(0, (vh - 600) / 300));
-        sc.style.paddingTop = Math.max(CHROME_FLOOR, Math.round(basePadTop * chromeScale)) + 'px';
-        if(progEl) progEl.style.marginTop = Math.max(CHROME_FLOOR, Math.round(8 * chromeScale)) + 'px';
-
-        /* 9b - Measure after chrome scaling */
         var headerPad = parseFloat(getComputedStyle(sc).paddingTop);
-        var newHdrH = sc.children[0].getBoundingClientRect().height;
-        var contentH = vh - headerPad - padBot - newHdrH;
+        var contentH = vh - headerPad - padBot - hdrH;
         var totalChildH = 0;
         for(var ci = 0; ci < content.children.length; ci++)
             totalChildH += content.children[ci].getBoundingClientRect().height;
         var spaceForGaps = contentH - totalChildH;
         var numGaps = NUM_CONTENT_GAPS + 1;
 
-        /* 9c - Deficit chain: calendar first, then svc */
         if(spaceForGaps < numGaps * MIN_GAP){
             var deficit = numGaps * MIN_GAP - spaceForGaps;
-
-            /* Priority 1: shrink calendar cells vertically */
-            var minCellH = Math.max(20, Math.round(cellH * 0.70));
-            var maxCalShrink = (cellH - minCellH) * nCalRows;
-            var calTake = Math.min(deficit, maxCalShrink);
-            if(calTake > 0){
-                var shrinkPerRow = calTake / nCalRows;
-                var newCellH = Math.max(minCellH, Math.round(cellH - shrinkPerRow));
-                cells.forEach(function(c){ c.style.height = newCellH + 'px'; });
-                if(newCellH < 28) cells.forEach(function(c){ c.style.fontSize = '11px'; });
-                deficit -= (cellH - newCellH) * nCalRows;
+            /* Priority 1: shrink svc */
+            var minSvcH = rows[0].getBoundingClientRect().height * 2 + rowGap;
+            var svcShrink = Math.min(deficit, svcScrollH - minSvcH);
+            if(svcShrink > 0){
+                var newSvcH = Math.ceil(svcScrollH - svcShrink);
+                svcScroll.style.maxHeight = newSvcH + 'px';
+                svcWrap.style.height = newSvcH + 'px';
+                deficit -= svcShrink;
             }
-
-            /* Priority 2: shrink svc (last resort) */
+            /* Priority 2: trim header padding */
             if(deficit > 0){
-                var minSvcH = rows[0].getBoundingClientRect().height * 2 + rowGap;
-                var svcTake = Math.min(deficit, Math.max(0, svcScrollH - minSvcH));
-                if(svcTake > 0){
-                    var newSvcH = Math.ceil(svcScrollH - svcTake);
-                    svcScroll.style.maxHeight = newSvcH + 'px';
-                    svcWrap.style.height = newSvcH + 'px';
-                }
+                var hTrim = Math.min(Math.round(headerPad - 4), Math.ceil(deficit));
+                if(hTrim > 0) sc.style.paddingTop = (headerPad - hTrim) + 'px';
             }
-
-            /* Recompute */
-            newHdrH = sc.children[0].getBoundingClientRect().height;
-            contentH = vh - parseFloat(getComputedStyle(sc).paddingTop) - padBot - newHdrH;
+            /* Recompute after changes */
+            contentH = vh - parseFloat(getComputedStyle(sc).paddingTop) - padBot - hdrH;
             totalChildH = 0;
             for(var ci2 = 0; ci2 < content.children.length; ci2++)
                 totalChildH += content.children[ci2].getBoundingClientRect().height;
@@ -359,6 +344,7 @@ html{scrollbar-width:none}
         }
 
         var gapSize = Math.min(20, Math.max(MIN_GAP, Math.round(spaceForGaps / numGaps)));
+        /* If still not enough, allow smaller gaps */
         if(gapSize * numGaps > spaceForGaps) gapSize = Math.max(2, Math.floor(spaceForGaps / numGaps));
         content.children[1].style.marginTop = gapSize + 'px';
         content.children[2].style.marginTop = gapSize + 'px';
