@@ -30,10 +30,10 @@ html{scrollbar-width:none}
 .content{flex:1;display:flex;flex-direction:column;justify-content:flex-start;gap:12px;min-height:0}
 .section{flex-shrink:0}
 .lbl{font-size:11px;color:#888;text-transform:uppercase;letter-spacing:.8px;margin-bottom:10px}
-.svc-wrap{position:relative;height:228px;overflow:hidden}
+.svc-wrap{position:relative;height:228px}
 .svc-scroll{overflow-y:auto;padding-right:10px;scrollbar-width:none;scroll-snap-type:y mandatory;display:flex;flex-direction:column;gap:8px;height:100%}
 .svc-scroll::-webkit-scrollbar{display:none}
-.svc-track{position:absolute;right:0;top:0;bottom:0;width:4px;background:#3A3A3A;border-radius:2px}
+.svc-track{position:absolute;right:0;top:0;bottom:0;width:4px;background:#3A3A3A;border-radius:2px;overflow:hidden}
 .svc-thumb{position:absolute;right:0;width:4px;background:#666;border-radius:2px;min-height:20px}
 .sr{display:flex;align-items:center;gap:12px;padding:18px 14px;background:transparent;border-radius:3px;cursor:pointer;border:1px solid #404040;transition:all 0.25s ease;position:relative;padding-left:98px;scroll-snap-align:start;flex:0 0 calc((100% - 16px) / 3);min-height:0}
 .sr .si{position:absolute;left:0;top:0;bottom:0;width:86px;height:100%;background:transparent;border-radius:2px 0 0 2px;display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0;border-right:1px solid #404040;transition:all 0.25s ease}
@@ -127,8 +127,7 @@ html{scrollbar-width:none}
                     <div class="sp" style="color:#666">Quote</div>
                 </div>
             </div>
-            <div class="svc-track"></div>
-            <div class="svc-thumb"></div>
+            <div class="svc-track"><div class="svc-thumb"></div></div>
             </div>
         </div>
         <div class="section">
