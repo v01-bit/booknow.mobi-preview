@@ -300,31 +300,32 @@ html{scrollbar-width:none}
         var btnPad = Math.max(10, Math.round((btnH - 19) / 2));
         btn.style.paddingTop = btnPad + 'px'; btn.style.paddingBottom = btnPad + 'px';
 
-        /* 9 - Responsive chrome + strict priority deficit: hdr > cal > svc */
+        /* 9 - Responsive chrome, sync svc-wrap, allocate gaps */
         var svcWrap = document.querySelector('.svc-wrap');
         var svcScrollH = svcScroll.offsetHeight;
         svcWrap.style.height = svcScrollH + 'px';
 
-        /* 9a - Aggressively scale header chrome with s, floor 4px */
+        /* 9a - Responsive header chrome: scale progress margins with s */
         var progEl = document.querySelector('.progress');
+        if(progEl && s < 1.0){
+            var progMT = parseFloat(getComputedStyle(progEl).marginTop);
+            var progMB = parseFloat(getComputedStyle(progEl).marginBottom);
+            var newPMT = Math.max(4, Math.round(progMT * s));
+            var newPMB = Math.max(4, Math.round(progMB * s));
+            if(newPMT < progMT) progEl.style.marginTop = newPMT + 'px';
+            if(newPMB < progMB) progEl.style.marginBottom = newPMB + 'px';
+        }
+        /* Also allow sc paddingTop to scale further than step 6 */
         var headerPad = parseFloat(getComputedStyle(sc).paddingTop);
-        var progMT = progEl ? parseFloat(getComputedStyle(progEl).marginTop) : 0;
-        var progMB = progEl ? parseFloat(getComputedStyle(progEl).marginBottom) : 0;
-        var CHROME_FLOOR = 4;
         if(s < 1.0){
-            /* Scale padding aggressively — use s*s for steeper curve */
-            var sFactor = s * s;
-            var newPad = Math.max(CHROME_FLOOR, Math.round(headerPad * sFactor));
-            if(newPad < headerPad){ sc.style.paddingTop = newPad + 'px'; headerPad = newPad; }
-            if(progEl){
-                var newPMT = Math.max(CHROME_FLOOR, Math.round(progMT * sFactor));
-                var newPMB = Math.max(CHROME_FLOOR, Math.round(progMB * sFactor));
-                if(newPMT < progMT) progEl.style.marginTop = newPMT + 'px';
-                if(newPMB < progMB) progEl.style.marginBottom = newPMB + 'px';
+            var scaledPad = Math.max(4, Math.round(headerPad * s));
+            if(scaledPad < headerPad){
+                sc.style.paddingTop = scaledPad + 'px';
+                headerPad = scaledPad;
             }
         }
 
-        /* 9b - Measure after chrome trim */
+        /* 9b - Measure and allocate gaps */
         var newHdrH = sc.children[0].getBoundingClientRect().height;
         var contentH = vh - headerPad - padBot - newHdrH;
         var totalChildH = 0;
@@ -333,54 +334,35 @@ html{scrollbar-width:none}
         var spaceForGaps = contentH - totalChildH;
         var numGaps = NUM_CONTENT_GAPS + 1;
 
-        /* 9c - Strict priority deficit resolution */
         if(spaceForGaps < numGaps * MIN_GAP){
             var deficit = numGaps * MIN_GAP - spaceForGaps;
 
-            /* Priority 1: squeeze chrome harder (to floor) */
-            var curPad = parseFloat(getComputedStyle(sc).paddingTop);
-            var curPMT = progEl ? parseFloat(getComputedStyle(progEl).marginTop) : 0;
-            var curPMB = progEl ? parseFloat(getComputedStyle(progEl).marginBottom) : 0;
-            var extraChrome = (curPad - CHROME_FLOOR) + (curPMT - CHROME_FLOOR) + (curPMB - CHROME_FLOOR);
-            if(extraChrome > 0 && deficit > 0){
-                var chromeTake = Math.min(deficit, extraChrome);
-                var cLeft = chromeTake;
-                /* Drain padding first */
-                var pTake = Math.min(cLeft, curPad - CHROME_FLOOR);
-                if(pTake > 0){ sc.style.paddingTop = (curPad - pTake) + 'px'; cLeft -= pTake; }
-                /* Then progress margin-bottom (larger margin) */
-                if(cLeft > 0 && progEl){
-                    var mbTake = Math.min(cLeft, curPMB - CHROME_FLOOR);
-                    if(mbTake > 0){ progEl.style.marginBottom = (curPMB - mbTake) + 'px'; cLeft -= mbTake; }
-                }
-                /* Then progress margin-top */
-                if(cLeft > 0 && progEl){
-                    var mtTake = Math.min(cLeft, curPMT - CHROME_FLOOR);
-                    if(mtTake > 0){ progEl.style.marginTop = (curPMT - mtTake) + 'px'; cLeft -= mtTake; }
-                }
-                deficit -= (chromeTake - cLeft);
-            }
+            /* Proportional: calendar cells + svc share remaining deficit */
+            var minCellH = Math.max(20, Math.round(cellH * 0.75));
+            var maxCalShrink = (cellH - minCellH) * nCalRows;
+            var minSvcH = rows[0].getBoundingClientRect().height * 2 + rowGap;
+            var maxSvcShrink = Math.max(0, svcScrollH - minSvcH);
+            var totalBudget = maxCalShrink + maxSvcShrink;
 
-            /* Priority 2: shrink calendar cells vertically */
-            if(deficit > 0){
-                var minCellH = Math.max(20, Math.round(cellH * 0.70));
-                var maxCalShrink = (cellH - minCellH) * nCalRows;
-                var calTake = Math.min(deficit, maxCalShrink);
-                if(calTake > 0){
-                    var shrinkPerRow = calTake / nCalRows;
+            if(totalBudget > 0){
+                var calShare = Math.min(maxCalShrink, Math.ceil(deficit * maxCalShrink / totalBudget));
+                var svcShare = Math.min(maxSvcShrink, Math.ceil(deficit * maxSvcShrink / totalBudget));
+                var used = calShare + svcShare;
+                if(used < deficit){
+                    var extra = deficit - used;
+                    var addCal = Math.min(extra, maxCalShrink - calShare);
+                    calShare += addCal; extra -= addCal;
+                    if(extra > 0) svcShare = Math.min(maxSvcShrink, svcShare + extra);
+                }
+
+                if(calShare > 0){
+                    var shrinkPerRow = calShare / nCalRows;
                     var newCellH = Math.max(minCellH, Math.round(cellH - shrinkPerRow));
                     cells.forEach(function(c){ c.style.height = newCellH + 'px'; });
                     if(newCellH < 28) cells.forEach(function(c){ c.style.fontSize = '11px'; });
-                    deficit -= (cellH - newCellH) * nCalRows;
                 }
-            }
-
-            /* Priority 3: shrink svc (last resort) */
-            if(deficit > 0){
-                var minSvcH = rows[0].getBoundingClientRect().height * 2 + rowGap;
-                var svcTake = Math.min(deficit, Math.max(0, svcScrollH - minSvcH));
-                if(svcTake > 0){
-                    var newSvcH = Math.ceil(svcScrollH - svcTake);
+                if(svcShare > 0){
+                    var newSvcH = Math.ceil(svcScrollH - svcShare);
                     svcScroll.style.maxHeight = newSvcH + 'px';
                     svcWrap.style.height = newSvcH + 'px';
                 }
