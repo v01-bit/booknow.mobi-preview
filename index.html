@@ -300,16 +300,34 @@ html{scrollbar-width:none}
         var btnPad = Math.max(10, Math.round((btnH - 19) / 2));
         btn.style.paddingTop = btnPad + 'px'; btn.style.paddingBottom = btnPad + 'px';
 
-        /* 9 - Sync svc-wrap, then allocate gaps (proportional + chrome trim) */
+        /* 9 - Responsive chrome, sync svc-wrap, allocate gaps */
         var svcWrap = document.querySelector('.svc-wrap');
         var svcScrollH = svcScroll.offsetHeight;
         svcWrap.style.height = svcScrollH + 'px';
 
-        var headerPad = parseFloat(getComputedStyle(sc).paddingTop);
+        /* 9a - Responsive header chrome: scale progress margins with s */
         var progEl = document.querySelector('.progress');
-        var progMT = progEl ? parseFloat(getComputedStyle(progEl).marginTop) : 0;
-        var progMB = progEl ? parseFloat(getComputedStyle(progEl).marginBottom) : 0;
-        var contentH = vh - headerPad - padBot - hdrH;
+        if(progEl && s < 1.0){
+            var progMT = parseFloat(getComputedStyle(progEl).marginTop);
+            var progMB = parseFloat(getComputedStyle(progEl).marginBottom);
+            var newPMT = Math.max(4, Math.round(progMT * s));
+            var newPMB = Math.max(4, Math.round(progMB * s));
+            if(newPMT < progMT) progEl.style.marginTop = newPMT + 'px';
+            if(newPMB < progMB) progEl.style.marginBottom = newPMB + 'px';
+        }
+        /* Also allow sc paddingTop to scale further than step 6 */
+        var headerPad = parseFloat(getComputedStyle(sc).paddingTop);
+        if(s < 1.0){
+            var scaledPad = Math.max(4, Math.round(headerPad * s));
+            if(scaledPad < headerPad){
+                sc.style.paddingTop = scaledPad + 'px';
+                headerPad = scaledPad;
+            }
+        }
+
+        /* 9b - Measure and allocate gaps */
+        var newHdrH = sc.children[0].getBoundingClientRect().height;
+        var contentH = vh - headerPad - padBot - newHdrH;
         var totalChildH = 0;
         for(var ci = 0; ci < content.children.length; ci++)
             totalChildH += content.children[ci].getBoundingClientRect().height;
@@ -319,54 +337,30 @@ html{scrollbar-width:none}
         if(spaceForGaps < numGaps * MIN_GAP){
             var deficit = numGaps * MIN_GAP - spaceForGaps;
 
-            /* Budget: each source can contribute */
-            var maxHdrTrim = Math.max(0, Math.round(headerPad - 2));
-            var maxProgTrim = Math.max(0, Math.round(progMT - 2) + Math.round(progMB - 2));
-            var maxChromeTrim = maxHdrTrim + maxProgTrim;
+            /* Proportional: calendar cells + svc share remaining deficit */
             var minCellH = Math.max(20, Math.round(cellH * 0.75));
             var maxCalShrink = (cellH - minCellH) * nCalRows;
             var minSvcH = rows[0].getBoundingClientRect().height * 2 + rowGap;
             var maxSvcShrink = Math.max(0, svcScrollH - minSvcH);
-            var totalBudget = maxChromeTrim + maxCalShrink + maxSvcShrink;
+            var totalBudget = maxCalShrink + maxSvcShrink;
 
             if(totalBudget > 0){
-                var chromeShare = Math.min(maxChromeTrim, Math.ceil(deficit * maxChromeTrim / totalBudget));
                 var calShare = Math.min(maxCalShrink, Math.ceil(deficit * maxCalShrink / totalBudget));
                 var svcShare = Math.min(maxSvcShrink, Math.ceil(deficit * maxSvcShrink / totalBudget));
-
-                /* Cover rounding leftovers */
-                var used = chromeShare + calShare + svcShare;
+                var used = calShare + svcShare;
                 if(used < deficit){
                     var extra = deficit - used;
-                    var addChr = Math.min(extra, maxChromeTrim - chromeShare);
-                    chromeShare += addChr; extra -= addChr;
-                    if(extra > 0){ var addCal = Math.min(extra, maxCalShrink - calShare); calShare += addCal; extra -= addCal; }
-                    if(extra > 0){ svcShare = Math.min(maxSvcShrink, svcShare + extra); }
+                    var addCal = Math.min(extra, maxCalShrink - calShare);
+                    calShare += addCal; extra -= addCal;
+                    if(extra > 0) svcShare = Math.min(maxSvcShrink, svcShare + extra);
                 }
 
-                /* Apply chrome: sc padding first, then progress margins */
-                var chromeLeft = chromeShare;
-                if(chromeLeft > 0 && maxHdrTrim > 0){
-                    var hTrim = Math.min(chromeLeft, maxHdrTrim);
-                    sc.style.paddingTop = (headerPad - hTrim) + 'px';
-                    chromeLeft -= hTrim;
-                }
-                if(chromeLeft > 0 && progEl){
-                    var pTopTrim = Math.min(Math.round(progMT - 2), Math.ceil(chromeLeft * 0.4));
-                    var pBotTrim = Math.min(Math.round(progMB - 2), chromeLeft - pTopTrim);
-                    if(pTopTrim > 0) progEl.style.marginTop = (progMT - pTopTrim) + 'px';
-                    if(pBotTrim > 0) progEl.style.marginBottom = (progMB - pBotTrim) + 'px';
-                }
-
-                /* Apply calendar cell vertical shrink */
                 if(calShare > 0){
                     var shrinkPerRow = calShare / nCalRows;
                     var newCellH = Math.max(minCellH, Math.round(cellH - shrinkPerRow));
                     cells.forEach(function(c){ c.style.height = newCellH + 'px'; });
                     if(newCellH < 28) cells.forEach(function(c){ c.style.fontSize = '11px'; });
                 }
-
-                /* Apply svc shrink */
                 if(svcShare > 0){
                     var newSvcH = Math.ceil(svcScrollH - svcShare);
                     svcScroll.style.maxHeight = newSvcH + 'px';
@@ -374,8 +368,8 @@ html{scrollbar-width:none}
                 }
             }
 
-            /* Recompute after all changes — re-measure header div */
-            var newHdrH = sc.children[0].getBoundingClientRect().height;
+            /* Recompute */
+            newHdrH = sc.children[0].getBoundingClientRect().height;
             contentH = vh - parseFloat(getComputedStyle(sc).paddingTop) - padBot - newHdrH;
             totalChildH = 0;
             for(var ci2 = 0; ci2 < content.children.length; ci2++)
