@@ -231,8 +231,7 @@ html{scrollbar-width:none}
         var IDEAL_GAP = 10;
         var MIN_GAP = 6;
         var idealRowH = rowContentH + 2 * IDEAL_SVC_PAD + rowGap;
-        var calAspect = Math.min(1.0, Math.max(0.70, vh / 844));
-        var idealCellH = cw * calAspect;
+        var idealCellH = cw;
         var idealCalH = nCalRows * idealCellH + calGaps;
         var idealTsH = 2 * IDEAL_TC_H + 6;
         var idealSvc3 = 3 * idealRowH;
@@ -262,9 +261,8 @@ html{scrollbar-width:none}
 
         /* 6 - Scale header on constrained screens */
         if(sf < 0.90){
-            var hSave1 = Math.round((1.0 - sf) * basePadTop * 0.5);
-            var hSave2 = Math.round(basePadTop * Math.max(0, (900 - vh) / 600));
-            var chromeSave = Math.min(Math.round(basePadTop * 0.65), Math.max(hSave1, hSave2));
+            var chromeSave = Math.round((1.0 - sf) * basePadTop * 0.5);
+            chromeSave = Math.min(chromeSave, Math.round(basePadTop * 0.4));
             sc.style.paddingTop = (basePadTop - chromeSave) + 'px';
             available += chromeSave;
             sf = available / idealTotal;
