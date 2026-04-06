@@ -300,12 +300,15 @@ html{scrollbar-width:none}
         var btnPad = Math.max(10, Math.round((btnH - 19) / 2));
         btn.style.paddingTop = btnPad + 'px'; btn.style.paddingBottom = btnPad + 'px';
 
-        /* 9 - Sync svc-wrap, then allocate gaps (proportional) */
+        /* 9 - Sync svc-wrap, then allocate gaps (proportional + chrome trim) */
         var svcWrap = document.querySelector('.svc-wrap');
         var svcScrollH = svcScroll.offsetHeight;
         svcWrap.style.height = svcScrollH + 'px';
 
         var headerPad = parseFloat(getComputedStyle(sc).paddingTop);
+        var progEl = document.querySelector('.progress');
+        var progMT = progEl ? parseFloat(getComputedStyle(progEl).marginTop) : 0;
+        var progMB = progEl ? parseFloat(getComputedStyle(progEl).marginBottom) : 0;
         var contentH = vh - headerPad - padBot - hdrH;
         var totalChildH = 0;
         for(var ci = 0; ci < content.children.length; ci++)
@@ -316,32 +319,44 @@ html{scrollbar-width:none}
         if(spaceForGaps < numGaps * MIN_GAP){
             var deficit = numGaps * MIN_GAP - spaceForGaps;
 
-            /* Budget: each source contributes proportionally */
+            /* Budget: each source can contribute */
             var maxHdrTrim = Math.max(0, Math.round(headerPad - 2));
+            var maxProgTrim = Math.max(0, Math.round(progMT - 2) + Math.round(progMB - 2));
+            var maxChromeTrim = maxHdrTrim + maxProgTrim;
             var minCellH = Math.max(20, Math.round(cellH * 0.75));
             var maxCalShrink = (cellH - minCellH) * nCalRows;
             var minSvcH = rows[0].getBoundingClientRect().height * 2 + rowGap;
             var maxSvcShrink = Math.max(0, svcScrollH - minSvcH);
-            var totalBudget = maxHdrTrim + maxCalShrink + maxSvcShrink;
+            var totalBudget = maxChromeTrim + maxCalShrink + maxSvcShrink;
 
             if(totalBudget > 0){
-                /* Each source takes its fair share of the deficit */
-                var hdrShare = Math.min(maxHdrTrim, Math.ceil(deficit * maxHdrTrim / totalBudget));
+                var chromeShare = Math.min(maxChromeTrim, Math.ceil(deficit * maxChromeTrim / totalBudget));
                 var calShare = Math.min(maxCalShrink, Math.ceil(deficit * maxCalShrink / totalBudget));
                 var svcShare = Math.min(maxSvcShrink, Math.ceil(deficit * maxSvcShrink / totalBudget));
 
-                /* Ensure we cover the full deficit — round-up leftovers go to header first */
-                var used = hdrShare + calShare + svcShare;
+                /* Cover rounding leftovers */
+                var used = chromeShare + calShare + svcShare;
                 if(used < deficit){
                     var extra = deficit - used;
-                    var addHdr = Math.min(extra, maxHdrTrim - hdrShare);
-                    hdrShare += addHdr; extra -= addHdr;
+                    var addChr = Math.min(extra, maxChromeTrim - chromeShare);
+                    chromeShare += addChr; extra -= addChr;
                     if(extra > 0){ var addCal = Math.min(extra, maxCalShrink - calShare); calShare += addCal; extra -= addCal; }
                     if(extra > 0){ svcShare = Math.min(maxSvcShrink, svcShare + extra); }
                 }
 
-                /* Apply header trim */
-                if(hdrShare > 0) sc.style.paddingTop = (headerPad - hdrShare) + 'px';
+                /* Apply chrome: sc padding first, then progress margins */
+                var chromeLeft = chromeShare;
+                if(chromeLeft > 0 && maxHdrTrim > 0){
+                    var hTrim = Math.min(chromeLeft, maxHdrTrim);
+                    sc.style.paddingTop = (headerPad - hTrim) + 'px';
+                    chromeLeft -= hTrim;
+                }
+                if(chromeLeft > 0 && progEl){
+                    var pTopTrim = Math.min(Math.round(progMT - 2), Math.ceil(chromeLeft * 0.4));
+                    var pBotTrim = Math.min(Math.round(progMB - 2), chromeLeft - pTopTrim);
+                    if(pTopTrim > 0) progEl.style.marginTop = (progMT - pTopTrim) + 'px';
+                    if(pBotTrim > 0) progEl.style.marginBottom = (progMB - pBotTrim) + 'px';
+                }
 
                 /* Apply calendar cell vertical shrink */
                 if(calShare > 0){
@@ -359,8 +374,9 @@ html{scrollbar-width:none}
                 }
             }
 
-            /* Recompute after changes */
-            contentH = vh - parseFloat(getComputedStyle(sc).paddingTop) - padBot - hdrH;
+            /* Recompute after all changes — re-measure header div */
+            var newHdrH = sc.children[0].getBoundingClientRect().height;
+            contentH = vh - parseFloat(getComputedStyle(sc).paddingTop) - padBot - newHdrH;
             totalChildH = 0;
             for(var ci2 = 0; ci2 < content.children.length; ci2++)
                 totalChildH += content.children[ci2].getBoundingClientRect().height;
@@ -368,7 +384,6 @@ html{scrollbar-width:none}
         }
 
         var gapSize = Math.min(20, Math.max(MIN_GAP, Math.round(spaceForGaps / numGaps)));
-        /* If still not enough, allow smaller gaps */
         if(gapSize * numGaps > spaceForGaps) gapSize = Math.max(2, Math.floor(spaceForGaps / numGaps));
         content.children[1].style.marginTop = gapSize + 'px';
         content.children[2].style.marginTop = gapSize + 'px';
