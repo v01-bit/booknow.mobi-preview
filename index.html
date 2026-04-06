@@ -315,19 +315,39 @@ html{scrollbar-width:none}
 
         if(spaceForGaps < numGaps * MIN_GAP){
             var deficit = numGaps * MIN_GAP - spaceForGaps;
-            /* Priority 1: shrink svc */
-            var minSvcH = rows[0].getBoundingClientRect().height * 2 + rowGap;
-            var svcShrink = Math.min(deficit, svcScrollH - minSvcH);
-            if(svcShrink > 0){
-                var newSvcH = Math.ceil(svcScrollH - svcShrink);
-                svcScroll.style.maxHeight = newSvcH + 'px';
-                svcWrap.style.height = newSvcH + 'px';
-                deficit -= svcShrink;
+            /* Priority 1: trim header padding */
+            var maxHdrTrim = Math.round(headerPad - 4);
+            var hTrim = Math.min(maxHdrTrim, Math.ceil(deficit));
+            if(hTrim > 0){
+                sc.style.paddingTop = (headerPad - hTrim) + 'px';
+                deficit -= hTrim;
             }
-            /* Priority 2: trim header padding */
+            /* Priority 2: shrink calendar cells vertically */
             if(deficit > 0){
-                var hTrim = Math.min(Math.round(headerPad - 4), Math.ceil(deficit));
-                if(hTrim > 0) sc.style.paddingTop = (headerPad - hTrim) + 'px';
+                var calEl = document.querySelector('.cal-grid');
+                var curCalH = calEl ? calEl.getBoundingClientRect().height : 0;
+                var minCellH = Math.max(20, Math.round(cellH * 0.65));
+                var maxCalShrink = (cellH - minCellH) * nCalRows;
+                var calShrink = Math.min(deficit, maxCalShrink);
+                if(calShrink > 0){
+                    var shrinkPerRow = calShrink / nCalRows;
+                    var newCellH = Math.round(cellH - shrinkPerRow);
+                    newCellH = Math.max(minCellH, newCellH);
+                    cells.forEach(function(c){ c.style.height = newCellH + 'px'; });
+                    if(newCellH < 28) cells.forEach(function(c){ c.style.fontSize = '11px'; });
+                    deficit -= (cellH - newCellH) * nCalRows;
+                }
+            }
+            /* Priority 3: shrink svc (last resort) */
+            if(deficit > 0){
+                var minSvcH = rows[0].getBoundingClientRect().height * 2 + rowGap;
+                var svcShrink = Math.min(deficit, svcScrollH - minSvcH);
+                if(svcShrink > 0){
+                    var newSvcH = Math.ceil(svcScrollH - svcShrink);
+                    svcScroll.style.maxHeight = newSvcH + 'px';
+                    svcWrap.style.height = newSvcH + 'px';
+                    deficit -= svcShrink;
+                }
             }
             /* Recompute after changes */
             contentH = vh - parseFloat(getComputedStyle(sc).paddingTop) - padBot - hdrH;
