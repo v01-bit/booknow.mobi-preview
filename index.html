@@ -287,7 +287,9 @@ html{scrollbar-width:none}
         var baseSvcMaxH = Math.floor(bN - t0);
         if(rows.length > visibleRows) svcScroll.style.maxHeight = baseSvcMaxH + 'px';
 
-        var cellH = Math.max(20, Math.round(idealCellH * s));
+        var cellH = Math.max(20, Math.round(idealCellH * s));        /* LOD 1: squeeze calendar vertically, keep width */
+        if(vh <= 700) cellH = Math.max(20, Math.round(cellH * 0.78));
+
         cells.forEach(function(c){ c.style.height = cellH + 'px'; });
         if(cellH < 28) cells.forEach(function(c){ c.style.fontSize = '11px'; });
 
