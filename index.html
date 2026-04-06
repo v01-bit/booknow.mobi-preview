@@ -300,58 +300,52 @@ html{scrollbar-width:none}
         var btnPad = Math.max(10, Math.round((btnH - 19) / 2));
         btn.style.paddingTop = btnPad + 'px'; btn.style.paddingBottom = btnPad + 'px';
 
-        /* 9 - Gaps via margins, button pinned to bottom */
-        var contentH = vh - parseFloat(getComputedStyle(sc).paddingTop) - padBot - hdrH;
+        /* 9 - Sync svc-wrap, then allocate gaps (clean) */
+        var svcScrollH = svcScroll.offsetHeight;
+        svcWrap.style.height = svcScrollH + 'px';
+
+        var headerPad = parseFloat(getComputedStyle(sc).paddingTop);
+        var contentH = vh - headerPad - padBot - hdrH;
         var totalChildH = 0;
-        for(var ci = 0; ci < content.children.length; ci++) totalChildH += content.children[ci].getBoundingClientRect().height;
-        var spaceForLayout = contentH - totalChildH;
+        for(var ci = 0; ci < content.children.length; ci++)
+            totalChildH += content.children[ci].getBoundingClientRect().height;
+        var spaceForGaps = contentH - totalChildH;
+        var numGaps = NUM_CONTENT_GAPS + 1;
 
-        if(spaceForLayout < (NUM_CONTENT_GAPS + 1) * MIN_GAP){
-            var deficit = ((NUM_CONTENT_GAPS + 1) * MIN_GAP) - spaceForLayout;
-            var curSvcH = svcScroll.offsetHeight;
+        if(spaceForGaps < numGaps * MIN_GAP){
+            var deficit = numGaps * MIN_GAP - spaceForGaps;
+            /* Priority 1: shrink svc */
             var minSvcH = rows[0].getBoundingClientRect().height * 2 + rowGap;
-            svcScroll.style.maxHeight = Math.ceil(Math.max(minSvcH, curSvcH - deficit)) + 'px';
-            totalChildH = 0;
-            for(var ci2 = 0; ci2 < content.children.length; ci2++) totalChildH += content.children[ci2].getBoundingClientRect().height;
-            spaceForLayout = contentH - totalChildH;
-        }
-
-        var contentGap = Math.min(20, Math.max(MIN_GAP, Math.round(spaceForLayout / (NUM_CONTENT_GAPS + 1))));
-        content.children[1].style.marginTop = contentGap + 'px';
-        content.children[2].style.marginTop = contentGap + 'px';
-        btn.style.marginTop = 'auto';
-
-        /* Step 10 removed */
-
-    /* 11 - Clip check: ensure btn is fully visible */
-    var btnRect = btn.getBoundingClientRect();
-    var overflow = btnRect.bottom - vh;
-    if(overflow > 0){
-        /* First: reduce gaps */
-        var minGap = 4;
-        var newGap = Math.max(minGap, gap - Math.ceil(overflow / (NUM_CONTENT_GAPS + 1)));
-        if(newGap < gap){
-            content.style.gap = newGap + 'px';
-            btn.style.marginTop = newGap + 'px';
-            overflow -= (gap - newGap) * (NUM_CONTENT_GAPS + 1);
-        }
-        /* Second: reduce header padding */
-        if(overflow > 0){
-            var curPad = parseFloat(getComputedStyle(sc).paddingTop);
-            var padSave = Math.min(overflow, curPad - 4);
-            if(padSave > 0){
-                sc.style.paddingTop = (curPad - padSave) + 'px';
-                overflow -= padSave;
+            var svcShrink = Math.min(deficit, svcScrollH - minSvcH);
+            if(svcShrink > 0){
+                var newSvcH = Math.ceil(svcScrollH - svcShrink);
+                svcScroll.style.maxHeight = newSvcH + 'px';
+                svcWrap.style.height = newSvcH + 'px';
+                deficit -= svcShrink;
             }
+            /* Priority 2: trim header padding */
+            if(deficit > 0){
+                var hTrim = Math.min(Math.round(headerPad - 4), Math.ceil(deficit));
+                if(hTrim > 0) sc.style.paddingTop = (headerPad - hTrim) + 'px';
+            }
+            /* Recompute after changes */
+            contentH = vh - parseFloat(getComputedStyle(sc).paddingTop) - padBot - hdrH;
+            totalChildH = 0;
+            for(var ci2 = 0; ci2 < content.children.length; ci2++)
+                totalChildH += content.children[ci2].getBoundingClientRect().height;
+            spaceForGaps = contentH - totalChildH;
         }
-        /* Third: further constrain svc scroll */
-        if(overflow > 0){
-            var curMax = parseFloat(svcScroll.style.maxHeight) || svcScroll.clientHeight;
-            svcScroll.style.maxHeight = Math.max(60, curMax - overflow) + 'px';
-        }
+
+        var gapSize = Math.min(20, Math.max(MIN_GAP, Math.round(spaceForGaps / numGaps)));
+        /* If still not enough, allow smaller gaps */
+        if(gapSize * numGaps > spaceForGaps) gapSize = Math.max(2, Math.floor(spaceForGaps / numGaps));
+        content.children[1].style.marginTop = gapSize + 'px';
+        content.children[2].style.marginTop = gapSize + 'px';
+        btn.style.marginTop = gapSize + 'px';
+
+        if(thumbFn) thumbFn();
     }
-    if(thumbFn) thumbFn();
-    }
+
     function initServiceSelect(){
 var rows=document.querySelectorAll(".svc-scroll .sr:not(.other)");
 rows.forEach(function(row){
