@@ -306,6 +306,12 @@ html{scrollbar-width:none}
         sc.style.paddingTop = Math.max(2, Math.round(basePadTop * chromeScale)) + 'px';
         if(progEl) progEl.style.marginTop = Math.max(2, Math.round(8 * chromeScale)) + 'px';
 
+        /* 8c - Gentle calendar trim on tight screens */
+        if(vh < 750){
+            var cellShrink = Math.max(0, Math.round((750 - vh) * 0.015));
+            if(cellShrink > 0) cells.forEach(function(c){ var h = parseInt(c.style.height); c.style.height = Math.max(18, h - cellShrink) + 'px'; });
+        }
+
         /* 9 - Sync svc-wrap, then allocate gaps (clean) */
         var svcWrap = document.querySelector('.svc-wrap');
         var svcScrollH = svcScroll.offsetHeight;
