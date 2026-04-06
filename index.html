@@ -300,7 +300,7 @@ html{scrollbar-width:none}
         var btnPad = Math.max(10, Math.round((btnH - 19) / 2));
         btn.style.paddingTop = btnPad + 'px'; btn.style.paddingBottom = btnPad + 'px';
 
-        /* 9 - Sync svc-wrap, then allocate gaps (clean) */
+        /* 9 - Sync svc-wrap, then allocate gaps (proportional) */
         var svcWrap = document.querySelector('.svc-wrap');
         var svcScrollH = svcScroll.offsetHeight;
         svcWrap.style.height = svcScrollH + 'px';
@@ -315,40 +315,50 @@ html{scrollbar-width:none}
 
         if(spaceForGaps < numGaps * MIN_GAP){
             var deficit = numGaps * MIN_GAP - spaceForGaps;
-            /* Priority 1: trim header padding */
-            var maxHdrTrim = Math.round(headerPad - 4);
-            var hTrim = Math.min(maxHdrTrim, Math.ceil(deficit));
-            if(hTrim > 0){
-                sc.style.paddingTop = (headerPad - hTrim) + 'px';
-                deficit -= hTrim;
-            }
-            /* Priority 2: shrink calendar cells vertically */
-            if(deficit > 0){
-                var calEl = document.querySelector('.cal-grid');
-                var curCalH = calEl ? calEl.getBoundingClientRect().height : 0;
-                var minCellH = Math.max(20, Math.round(cellH * 0.65));
-                var maxCalShrink = (cellH - minCellH) * nCalRows;
-                var calShrink = Math.min(deficit, maxCalShrink);
-                if(calShrink > 0){
-                    var shrinkPerRow = calShrink / nCalRows;
-                    var newCellH = Math.round(cellH - shrinkPerRow);
-                    newCellH = Math.max(minCellH, newCellH);
+
+            /* Budget: each source contributes proportionally */
+            var maxHdrTrim = Math.max(0, Math.round(headerPad - 2));
+            var minCellH = Math.max(20, Math.round(cellH * 0.75));
+            var maxCalShrink = (cellH - minCellH) * nCalRows;
+            var minSvcH = rows[0].getBoundingClientRect().height * 2 + rowGap;
+            var maxSvcShrink = Math.max(0, svcScrollH - minSvcH);
+            var totalBudget = maxHdrTrim + maxCalShrink + maxSvcShrink;
+
+            if(totalBudget > 0){
+                /* Each source takes its fair share of the deficit */
+                var hdrShare = Math.min(maxHdrTrim, Math.ceil(deficit * maxHdrTrim / totalBudget));
+                var calShare = Math.min(maxCalShrink, Math.ceil(deficit * maxCalShrink / totalBudget));
+                var svcShare = Math.min(maxSvcShrink, Math.ceil(deficit * maxSvcShrink / totalBudget));
+
+                /* Ensure we cover the full deficit — round-up leftovers go to header first */
+                var used = hdrShare + calShare + svcShare;
+                if(used < deficit){
+                    var extra = deficit - used;
+                    var addHdr = Math.min(extra, maxHdrTrim - hdrShare);
+                    hdrShare += addHdr; extra -= addHdr;
+                    if(extra > 0){ var addCal = Math.min(extra, maxCalShrink - calShare); calShare += addCal; extra -= addCal; }
+                    if(extra > 0){ svcShare = Math.min(maxSvcShrink, svcShare + extra); }
+                }
+
+                /* Apply header trim */
+                if(hdrShare > 0) sc.style.paddingTop = (headerPad - hdrShare) + 'px';
+
+                /* Apply calendar cell vertical shrink */
+                if(calShare > 0){
+                    var shrinkPerRow = calShare / nCalRows;
+                    var newCellH = Math.max(minCellH, Math.round(cellH - shrinkPerRow));
                     cells.forEach(function(c){ c.style.height = newCellH + 'px'; });
                     if(newCellH < 28) cells.forEach(function(c){ c.style.fontSize = '11px'; });
-                    deficit -= (cellH - newCellH) * nCalRows;
                 }
-            }
-            /* Priority 3: shrink svc (last resort) */
-            if(deficit > 0){
-                var minSvcH = rows[0].getBoundingClientRect().height * 2 + rowGap;
-                var svcShrink = Math.min(deficit, svcScrollH - minSvcH);
-                if(svcShrink > 0){
-                    var newSvcH = Math.ceil(svcScrollH - svcShrink);
+
+                /* Apply svc shrink */
+                if(svcShare > 0){
+                    var newSvcH = Math.ceil(svcScrollH - svcShare);
                     svcScroll.style.maxHeight = newSvcH + 'px';
                     svcWrap.style.height = newSvcH + 'px';
-                    deficit -= svcShrink;
                 }
             }
+
             /* Recompute after changes */
             contentH = vh - parseFloat(getComputedStyle(sc).paddingTop) - padBot - hdrH;
             totalChildH = 0;
