@@ -361,6 +361,7 @@ if(f){svg.setAttribute("fill",selected?"#1E1E1E":"white");}
             var ch = svcScroll.clientHeight;
             if(sh <= ch){ track.style.display='none'; thumb.style.display='none'; return; }
             track.style.display=''; thumb.style.display='';
+            track.style.height = ch + 'px';
             var ratio = ch / sh;
             var trackH = track.offsetHeight;
             var thumbH = Math.max(20, Math.round(trackH * ratio));
