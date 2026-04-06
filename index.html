@@ -323,6 +323,33 @@ html{scrollbar-width:none}
 
         /* Step 10 removed */
 
+    /* 11 - Clip check: ensure btn is fully visible */
+    var btnRect = btn.getBoundingClientRect();
+    var overflow = btnRect.bottom - vh;
+    if(overflow > 0){
+        /* First: reduce gaps */
+        var minGap = 4;
+        var newGap = Math.max(minGap, gap - Math.ceil(overflow / (NUM_CONTENT_GAPS + 1)));
+        if(newGap < gap){
+            content.style.gap = newGap + 'px';
+            btn.style.marginTop = newGap + 'px';
+            overflow -= (gap - newGap) * (NUM_CONTENT_GAPS + 1);
+        }
+        /* Second: reduce header padding */
+        if(overflow > 0){
+            var curPad = parseFloat(getComputedStyle(sc).paddingTop);
+            var padSave = Math.min(overflow, curPad - 4);
+            if(padSave > 0){
+                sc.style.paddingTop = (curPad - padSave) + 'px';
+                overflow -= padSave;
+            }
+        }
+        /* Third: further constrain svc scroll */
+        if(overflow > 0){
+            var curMax = parseFloat(svcScroll.style.maxHeight) || svcScroll.clientHeight;
+            svcScroll.style.maxHeight = Math.max(60, curMax - overflow) + 'px';
+        }
+    }
     if(thumbFn) thumbFn();
     }
     function initServiceSelect(){
