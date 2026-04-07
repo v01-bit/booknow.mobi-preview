@@ -238,51 +238,75 @@ html{scrollbar-width:none}
         var idealTotal = idealSvc3 + idealCalH + idealTsH + IDEAL_BTN_H + (NUM_CONTENT_GAPS + 1) * IDEAL_GAP;
         var sf = available / idealTotal;
 
+        /* 5 - Scroll mode (landscape / very short) */
         
-        /* 4b - LOD detection + header chrome (LOD 1 only) */
         var progEl = document.querySelector('.progress');
         var lod = (vh <= 700) ? 1 : (vh <= 900) ? 2 : 3;
         if(lod === 1){
-/* LOD1 pct: hdr10 svc48 ts22 btn14 gaps6 v2 */
-var cellH = Math.max(20, Math.min(Math.round(idealCellH), Math.round(vh * 0.048)));
-cells.forEach(function(c){ c.style.height = cellH + "px"; });
-var calSection = content.children[1];
-var calMeasured = calSection.getBoundingClientRect().height;
-var chromePadTop = parseFloat(getComputedStyle(sc).paddingTop);
-var progArea = 0;
-if(progEl){ var pCS = getComputedStyle(progEl); progArea = progEl.getBoundingClientRect().height + parseFloat(pCS.marginTop) + parseFloat(pCS.marginBottom); }
-var overhead = chromePadTop + progArea;
-var remaining = vh - overhead - calMeasured;
-var hdrEl = sc.children[0];
-var hdrAlloc = Math.max(30, Math.round(remaining * 0.10));
-var svcAlloc = Math.max(80, Math.round(remaining * 0.48));
-var tsAlloc = Math.max(50, Math.round(remaining * 0.22));
-var btnAlloc = Math.max(36, Math.round(remaining * 0.14));
-var gapTotal = remaining - hdrAlloc - svcAlloc - tsAlloc - btnAlloc;
-var gapSize = Math.max(2, Math.floor(gapTotal / 5));
-hdrEl.style.height = hdrAlloc + "px";
-hdrEl.style.overflow = "hidden";
-var svcWrap = document.querySelector(".svc-wrap");
-var svcLblH = content.children[0].querySelector(".lbl") ? content.children[0].querySelector(".lbl").getBoundingClientRect().height : 0;
-var svcScrollH = Math.max(60, svcAlloc - svcLblH);
-svcScroll.style.maxHeight = svcScrollH + "px";
-if(svcWrap) svcWrap.style.height = svcScrollH + "px";
-var tsLblH = content.children[2].querySelector(".tslot-head") ? content.children[2].querySelector(".tslot-head").getBoundingClientRect().height : 0;
-var tcAvail = Math.max(40, tsAlloc - tsLblH);
-var tcH = Math.max(28, Math.round(tcAvail / 2 - 3));
-tcs.forEach(function(t){ t.style.height = tcH + "px"; t.style.lineHeight = tcH + "px"; });
-btn.style.height = btnAlloc + "px";
-btn.style.lineHeight = btnAlloc + "px";
-content.style.paddingTop = gapSize + "px";
-content.children[0].style.marginTop = "0px";
-content.children[1].style.marginTop = gapSize + "px";
-content.children[2].style.marginTop = gapSize + "px";
-btn.style.marginTop = gapSize + "px";
-sc.style.paddingBottom = gapSize + "px";
-if(thumbFn) thumbFn();
-} else {
-            /* LOD 2/3: original baseline steps 6-9 */
-/* 6 - Scale header on constrained screens */
+            sc.style.paddingTop = '2px';
+            if(progEl){ progEl.style.marginTop = '2px'; progEl.style.marginBottom = '3px'; }
+        }
+
+        if(sf < 0.7){
+            var scrollCellH = Math.min(cw, 56); scrollCellH = Math.max(scrollCellH, 24);
+            cells.forEach(function(c){ c.style.height = scrollCellH + 'px'; });
+            if(scrollCellH < 28) cells.forEach(function(c){ c.style.fontSize = '11px'; });
+            rows.forEach(function(r){ r.style.paddingTop = '10px'; r.style.paddingBottom = '10px'; });
+            if(rows.length >= 3){
+                var t0s = rows[0].getBoundingClientRect().top;
+                var b2s = rows[2].getBoundingClientRect().bottom;
+                svcScroll.style.maxHeight = Math.ceil(b2s - t0s + rowGap) + 'px';
+            }
+            tcs.forEach(function(t){ t.style.height = '36px'; });
+            var sBtnPad = Math.max(10, Math.round((42 - 19) / 2));
+            btn.style.paddingTop = sBtnPad + 'px'; btn.style.paddingBottom = sBtnPad + 'px';
+            content.children[1].style.marginTop = '8px';
+            content.children[2].style.marginTop = '8px';
+            btn.style.marginTop = 'auto';
+            if(thumbFn) thumbFn();
+            return;
+        }
+
+if(lod === 1){
+        /* LOD1 pct: hdr10 svc48 ts22 btn14 gaps6 */
+        var cellH = Math.max(20, Math.min(Math.round(idealCellH), Math.round(vh * 0.048)));
+        cells.forEach(function(c){ c.style.height = cellH + "px"; });
+        var calSection = content.children[1];
+        var calMeasured = calSection.getBoundingClientRect().height;
+        var chromePadTop = parseFloat(getComputedStyle(sc).paddingTop);
+        var progArea = 0;
+        if(progEl){ var pCS = getComputedStyle(progEl); progArea = progEl.getBoundingClientRect().height + parseFloat(pCS.marginTop) + parseFloat(pCS.marginBottom); }
+        var overhead = chromePadTop + progArea;
+        var remaining = vh - overhead - calMeasured;
+        var hdrEl = sc.children[0];
+        var hdrAlloc = Math.max(30, Math.round(remaining * 0.10));
+        var svcAlloc = Math.max(80, Math.round(remaining * 0.48));
+        var tsAlloc = Math.max(50, Math.round(remaining * 0.22));
+        var btnAlloc = Math.max(36, Math.round(remaining * 0.14));
+        var gapTotal = remaining - hdrAlloc - svcAlloc - tsAlloc - btnAlloc;
+        var gapSize = Math.max(2, Math.floor(gapTotal / 5));
+        hdrEl.style.height = hdrAlloc + "px";
+        hdrEl.style.overflow = "hidden";
+        var svcWrap = document.querySelector(".svc-wrap");
+        var svcLblH = content.children[0].querySelector(".lbl") ? content.children[0].querySelector(".lbl").getBoundingClientRect().height : 0;
+        var svcScrollH = Math.max(60, svcAlloc - svcLblH);
+        svcScroll.style.maxHeight = svcScrollH + "px";
+        if(svcWrap) svcWrap.style.height = svcScrollH + "px";
+        var tsLblH = content.children[2].querySelector(".tslot-head") ? content.children[2].querySelector(".tslot-head").getBoundingClientRect().height : 0;
+        var tcAvail = Math.max(40, tsAlloc - tsLblH);
+        var tcH = Math.max(28, Math.round(tcAvail / 2 - 3));
+        tcs.forEach(function(t){ t.style.height = tcH + "px"; t.style.lineHeight = tcH + "px"; });
+        btn.style.height = btnAlloc + "px";
+        btn.style.lineHeight = btnAlloc + "px";
+        content.style.paddingTop = gapSize + "px";
+        content.children[0].style.marginTop = "0px";
+        content.children[1].style.marginTop = gapSize + "px";
+        content.children[2].style.marginTop = gapSize + "px";
+        btn.style.marginTop = gapSize + "px";
+        sc.style.paddingBottom = gapSize + "px";
+        if(thumbFn) thumbFn();
+        } else {
+        /* 6 - Scale header on constrained screens */
         if(sf < 0.90){
             var chromeSave = Math.round((1.0 - sf) * basePadTop * 0.5);
             chromeSave = Math.min(chromeSave, Math.round(basePadTop * 0.4));
@@ -368,9 +392,8 @@ if(thumbFn) thumbFn();
         btn.style.marginTop = gapSize + 'px';
 
         if(thumbFn) thumbFn();
-    }
         }
-
+}
 
     function initServiceSelect(){
 var rows=document.querySelectorAll(".svc-scroll .sr:not(.other)");
