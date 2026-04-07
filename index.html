@@ -268,7 +268,7 @@ html{scrollbar-width:none}
         }
 
 if(lod === 1){
-        /* LOD1 pct: hdr10 svc48 ts22 btn14 gaps6 */
+        /* LOD1 pct v3: hdr10 svc48 ts22 btn14 gaps6 */
         var cellH = Math.max(20, Math.min(Math.round(idealCellH), Math.round(vh * 0.048)));
         cells.forEach(function(c){ c.style.height = cellH + "px"; });
         var calSection = content.children[1];
@@ -278,15 +278,15 @@ if(lod === 1){
         if(progEl){ var pCS = getComputedStyle(progEl); progArea = progEl.getBoundingClientRect().height + parseFloat(pCS.marginTop) + parseFloat(pCS.marginBottom); }
         var overhead = chromePadTop + progArea;
         var remaining = vh - overhead - calMeasured;
-        var hdrEl = sc.children[0];
+        var headerEl = document.querySelector(".header");
         var hdrAlloc = Math.max(30, Math.round(remaining * 0.10));
         var svcAlloc = Math.max(80, Math.round(remaining * 0.48));
         var tsAlloc = Math.max(50, Math.round(remaining * 0.22));
         var btnAlloc = Math.max(36, Math.round(remaining * 0.14));
         var gapTotal = remaining - hdrAlloc - svcAlloc - tsAlloc - btnAlloc;
         var gapSize = Math.max(2, Math.floor(gapTotal / 5));
-        hdrEl.style.height = hdrAlloc + "px";
-        hdrEl.style.overflow = "hidden";
+        headerEl.style.height = hdrAlloc + "px";
+        headerEl.style.overflow = "hidden";
         var svcWrap = document.querySelector(".svc-wrap");
         var svcLblH = content.children[0].querySelector(".lbl") ? content.children[0].querySelector(".lbl").getBoundingClientRect().height : 0;
         var svcScrollH = Math.max(60, svcAlloc - svcLblH);
@@ -298,8 +298,7 @@ if(lod === 1){
         tcs.forEach(function(t){ t.style.height = tcH + "px"; t.style.lineHeight = tcH + "px"; });
         btn.style.height = btnAlloc + "px";
         btn.style.lineHeight = btnAlloc + "px";
-        content.style.paddingTop = gapSize + "px";
-        content.children[0].style.marginTop = "0px";
+        content.children[0].style.marginTop = gapSize + "px";
         content.children[1].style.marginTop = gapSize + "px";
         content.children[2].style.marginTop = gapSize + "px";
         btn.style.marginTop = gapSize + "px";
