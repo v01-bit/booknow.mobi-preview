@@ -268,50 +268,47 @@ html{scrollbar-width:none}
         }
 
 if(lod === 1){
-        /* LOD1 v5: ALL pct hdr7 svc30 cal30 ts15 btn10 gaps8 */
+        /* LOD1 v6: inner sizing hdr7 svc30 cal30 ts15 btn10 gaps8 */
         var chromePadTop = parseFloat(getComputedStyle(sc).paddingTop);
         var progArea = 0;
         if(progEl){ var pCS = getComputedStyle(progEl); progArea = progEl.getBoundingClientRect().height + parseFloat(pCS.marginTop) + parseFloat(pCS.marginBottom); }
         var remaining = vh - chromePadTop - progArea;
         var headerEl = document.querySelector(".header");
         var hdrAlloc = Math.max(30, Math.round(remaining * 0.07));
-        var svcAlloc = Math.max(80, Math.round(remaining * 0.30));
+        var svcAlloc = Math.max(120, Math.round(remaining * 0.30));
         var calAlloc = Math.max(120, Math.round(remaining * 0.30));
-        var tsAlloc = Math.max(50, Math.round(remaining * 0.15));
+        var tsAlloc = Math.max(70, Math.round(remaining * 0.15));
         var btnAlloc = Math.max(36, Math.round(remaining * 0.10));
         var gapTotal = remaining - hdrAlloc - svcAlloc - calAlloc - tsAlloc - btnAlloc;
         var gapSize = Math.max(2, Math.floor(gapTotal / 5));
         headerEl.style.height = hdrAlloc + "px";
         headerEl.style.overflow = "hidden";
         var svcSection = content.children[0];
-        svcSection.style.height = svcAlloc + "px";
-        svcSection.style.overflow = "hidden";
+        var svcLbl = svcSection.querySelector(".lbl");
+        var svcLblTotal = svcLbl ? (svcLbl.getBoundingClientRect().height + parseFloat(getComputedStyle(svcLbl).marginBottom)) : 0;
+        var svcCardGap = 8;
+        var svcScrollSpace = svcAlloc - svcLblTotal;
+        var cardH = Math.max(40, Math.floor((svcScrollSpace - 2 * svcCardGap) / 3));
+        rows.forEach(function(r){ r.style.height = cardH + "px"; r.style.minHeight = cardH + "px"; r.style.overflow = "hidden"; });
+        svcScroll.style.maxHeight = svcScrollSpace + "px";
         var svcWrap = document.querySelector(".svc-wrap");
-        var svcLblH = svcSection.querySelector(".lbl") ? svcSection.querySelector(".lbl").getBoundingClientRect().height : 0;
-        var svcScrollH = Math.max(60, svcAlloc - svcLblH);
-        svcScroll.style.maxHeight = svcScrollH + "px";
-        if(svcWrap) svcWrap.style.height = svcScrollH + "px";
+        if(svcWrap) svcWrap.style.height = svcScrollSpace + "px";
         var calSection = content.children[1];
-        calSection.style.height = calAlloc + "px";
-        calSection.style.overflow = "hidden";
         var calHead = calSection.querySelector(".cal-head");
         var calWk = calSection.querySelector(".cal-wk");
         var calGrid = document.querySelector(".cal-grid");
-        var calFixedH = (calHead ? calHead.getBoundingClientRect().height : 0) + (calWk ? calWk.getBoundingClientRect().height : 0);
+        var calFixedH = (calHead ? calHead.getBoundingClientRect().height : 28) + (calWk ? calWk.getBoundingClientRect().height : 18);
         var nCalRows = Math.ceil(calGrid.children.length / 7);
         var calGapPx = 3;
-        var gridSpace = calAlloc - calFixedH;
-        var cellH = Math.floor((gridSpace - (nCalRows - 1) * calGapPx) / nCalRows);
-        var cellW = cells.length > 0 ? cells[0].getBoundingClientRect().width : 46;
-        cellH = Math.min(cellH, Math.floor(cellW));
-        cellH = Math.max(18, cellH);
+        var cellH = Math.max(18, Math.floor((calAlloc - calFixedH - (nCalRows - 1) * calGapPx) / nCalRows));
+        var cellW = cells.length > 0 ? Math.floor(cells[0].getBoundingClientRect().width) : 46;
+        cellH = Math.min(cellH, cellW);
         cells.forEach(function(c){ c.style.height = cellH + "px"; });
         var tsSection = content.children[2];
-        tsSection.style.height = tsAlloc + "px";
-        tsSection.style.overflow = "hidden";
-        var tsLblH = tsSection.querySelector(".tslot-head") ? tsSection.querySelector(".tslot-head").getBoundingClientRect().height : 0;
-        var tcAvail = Math.max(40, tsAlloc - tsLblH);
-        var tcH = Math.max(24, Math.round(tcAvail / 2 - 3));
+        var tsHead = tsSection.querySelector(".tslot-head");
+        var tsFixedH = tsHead ? (tsHead.getBoundingClientRect().height + parseFloat(getComputedStyle(tsHead).marginBottom)) : 36;
+        var tcRowGap = 6;
+        var tcH = Math.max(24, Math.floor((tsAlloc - tsFixedH - tcRowGap) / 2));
         tcs.forEach(function(t){ t.style.height = tcH + "px"; t.style.lineHeight = tcH + "px"; });
         btn.style.height = btnAlloc + "px";
         btn.style.lineHeight = btnAlloc + "px";
