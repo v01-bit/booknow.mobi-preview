@@ -309,7 +309,7 @@ if(lod === 1){
         var tsFixedH = tsHead ? (tsHead.getBoundingClientRect().height + parseFloat(getComputedStyle(tsHead).marginBottom)) : 36;
         var tcRowGap = 6;
         var tcH = Math.max(24, Math.floor((tsAlloc - tsFixedH - tcRowGap) / 2));
-        tcs.forEach(function(t){ t.style.height = tcH + "px"; t.style.lineHeight = tcH + "px"; });
+        tcs.forEach(function(t){ t.style.height = tcH + "px"; t.style.lineHeight = tcH + "px"; t.style.fontSize = "13px"; });
         btn.style.height = btnAlloc + "px";
         btn.style.lineHeight = btnAlloc + "px";
         content.children[0].style.marginTop = gapSize + "px";
