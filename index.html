@@ -268,7 +268,7 @@ html{scrollbar-width:none}
         }
 
 if(lod === 1){
-        /* LOD1 pct v3: hdr10 svc48 ts22 btn14 gaps6 */
+        /* LOD1 pct v4: section containers get explicit heights */
         var cellH = Math.max(20, Math.min(Math.round(idealCellH), Math.round(vh * 0.048)));
         cells.forEach(function(c){ c.style.height = cellH + "px"; });
         var calSection = content.children[1];
@@ -287,12 +287,18 @@ if(lod === 1){
         var gapSize = Math.max(2, Math.floor(gapTotal / 5));
         headerEl.style.height = hdrAlloc + "px";
         headerEl.style.overflow = "hidden";
+        var svcSection = content.children[0];
+        svcSection.style.height = svcAlloc + "px";
+        svcSection.style.overflow = "hidden";
         var svcWrap = document.querySelector(".svc-wrap");
-        var svcLblH = content.children[0].querySelector(".lbl") ? content.children[0].querySelector(".lbl").getBoundingClientRect().height : 0;
+        var svcLblH = svcSection.querySelector(".lbl") ? svcSection.querySelector(".lbl").getBoundingClientRect().height : 0;
         var svcScrollH = Math.max(60, svcAlloc - svcLblH);
         svcScroll.style.maxHeight = svcScrollH + "px";
         if(svcWrap) svcWrap.style.height = svcScrollH + "px";
-        var tsLblH = content.children[2].querySelector(".tslot-head") ? content.children[2].querySelector(".tslot-head").getBoundingClientRect().height : 0;
+        var tsSection = content.children[2];
+        tsSection.style.height = tsAlloc + "px";
+        tsSection.style.overflow = "hidden";
+        var tsLblH = tsSection.querySelector(".tslot-head") ? tsSection.querySelector(".tslot-head").getBoundingClientRect().height : 0;
         var tcAvail = Math.max(40, tsAlloc - tsLblH);
         var tcH = Math.max(28, Math.round(tcAvail / 2 - 3));
         tcs.forEach(function(t){ t.style.height = tcH + "px"; t.style.lineHeight = tcH + "px"; });
