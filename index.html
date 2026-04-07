@@ -243,33 +243,7 @@ html{scrollbar-width:none}
         var progEl = document.querySelector('.progress');
         var lod = (vh <= 700) ? 1 : (vh <= 900) ? 2 : 3;
         if(lod === 1){
-            sc.style.paddingTop = '2px';
-            if(progEl){ progEl.style.marginTop = '2px'; progEl.style.marginBottom = '3px'; }
-        }
 
-        /* 5 - Scroll mode (landscape / very short) */
-        if(sf < 0.7){
-            var scrollCellH = Math.min(cw, 56); scrollCellH = Math.max(scrollCellH, 24);
-            cells.forEach(function(c){ c.style.height = scrollCellH + 'px'; });
-            if(scrollCellH < 28) cells.forEach(function(c){ c.style.fontSize = '11px'; });
-            rows.forEach(function(r){ r.style.paddingTop = '10px'; r.style.paddingBottom = '10px'; });
-            if(rows.length >= 3){
-                var t0s = rows[0].getBoundingClientRect().top;
-                var b2s = rows[2].getBoundingClientRect().bottom;
-                svcScroll.style.maxHeight = Math.ceil(b2s - t0s + rowGap) + 'px';
-            }
-            tcs.forEach(function(t){ t.style.height = '36px'; });
-            var sBtnPad = Math.max(10, Math.round((42 - 19) / 2));
-            btn.style.paddingTop = sBtnPad + 'px'; btn.style.paddingBottom = sBtnPad + 'px';
-            content.children[1].style.marginTop = '8px';
-            content.children[2].style.marginTop = '8px';
-            btn.style.marginTop = 'auto';
-            if(thumbFn) thumbFn();
-            return;
-        }
-
-        /* 6 - Layout: LOD 1 uses hybrid percentages, LOD 2/3 use original */
-        if(lod === 1){
             /* Calendar self-sizing */
             var cellH = Math.max(20, Math.min(Math.round(idealCellH), Math.round(vh * 0.048)));
             cells.forEach(function(c){ c.style.height = cellH + 'px'; });
@@ -278,22 +252,23 @@ html{scrollbar-width:none}
             var calSection = content.children[1];
             var calMeasured = calSection.getBoundingClientRect().height;
 
-            /* Fixed overhead */
+            /* Fixed overhead: header chrome + progress (NO padBot — we control bottom gap) */
             var chromePadTop = parseFloat(getComputedStyle(sc).paddingTop);
             var progArea = 0;
             if(progEl){
                 var pCS = getComputedStyle(progEl);
                 progArea = progEl.getBoundingClientRect().height + parseFloat(pCS.marginTop) + parseFloat(pCS.marginBottom);
             }
-            var overhead = chromePadTop + padBot + hdrH + progArea;
+            var overhead = chromePadTop + hdrH + progArea;
             var remaining = vh - overhead - calMeasured;
 
             /* LOD 1 percentages */
-            var svcAlloc = Math.max(80, Math.round(remaining * 0.45));
-            var tsAlloc = Math.max(50, Math.round(remaining * 0.24));
-            var btnAlloc = Math.max(36, Math.round(remaining * 0.16));
+            var svcAlloc = Math.max(80, Math.round(remaining * 0.48));
+            var tsAlloc = Math.max(50, Math.round(remaining * 0.22));
+            var btnAlloc = Math.max(36, Math.round(remaining * 0.14));
+            /* 5 gaps: above svc, svc-cal, cal-ts, ts-btn, below btn */
             var gapTotal = remaining - svcAlloc - tsAlloc - btnAlloc;
-            var gapSize = Math.max(4, Math.round(gapTotal / 3));
+            var gapSize = Math.max(3, Math.floor(gapTotal / 5));
 
             /* Apply svc */
             var svcWrap = document.querySelector('.svc-wrap');
@@ -314,10 +289,12 @@ html{scrollbar-width:none}
             btn.style.height = btnAlloc + 'px';
             btn.style.lineHeight = btnAlloc + 'px';
 
-            /* Apply gaps */
-            content.children[1].style.marginTop = gapSize + 'px';
-            content.children[2].style.marginTop = gapSize + 'px';
-            btn.style.marginTop = gapSize + 'px';
+            /* Apply 5 gaps */
+            content.children[0].style.marginTop = gapSize + 'px';  /* above svc */
+            content.children[1].style.marginTop = gapSize + 'px';  /* svc-cal */
+            content.children[2].style.marginTop = gapSize + 'px';  /* cal-ts */
+            btn.style.marginTop = gapSize + 'px';                  /* ts-btn */
+            sc.style.paddingBottom = gapSize + 'px';               /* below btn */
 
             if(thumbFn) thumbFn();
         } else {
