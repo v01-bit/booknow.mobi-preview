@@ -239,7 +239,7 @@ html{scrollbar-width:none}
         var sf = available / idealTotal;
 
         
-        /* 4b - Header chrome scaling (always runs before scroll check) */
+        /* 4b - LOD detection + header chrome (LOD 1 only) */
         var progEl = document.querySelector('.progress');
         var lod = (vh <= 700) ? 1 : (vh <= 900) ? 2 : 3;
         if(lod === 1){
@@ -268,67 +268,148 @@ html{scrollbar-width:none}
             return;
         }
 
-        /* 6 - Hybrid percentage layout (LOD 1) */
+        /* 6 - Layout: LOD 1 uses hybrid percentages, LOD 2/3 use original */
+        if(lod === 1){
+            /* Calendar self-sizing */
+            var cellH = Math.max(20, Math.min(Math.round(idealCellH), Math.round(vh * 0.038)));
+            cells.forEach(function(c){ c.style.height = cellH + 'px'; });
 
-        /* a. Calendar self-sizing */
-        var cellH = Math.max(20, Math.min(Math.round(idealCellH), Math.round(vh * 0.038)));
-        cells.forEach(function(c){ c.style.height = cellH + 'px'; });
+            /* Measure calendar section */
+            var calSection = content.children[1];
+            var calMeasured = calSection.getBoundingClientRect().height;
 
-        /* b. Measure calendar section */
-        var calSection = content.children[1];
-        var calMeasured = calSection.getBoundingClientRect().height;
+            /* Fixed overhead */
+            var chromePadTop = parseFloat(getComputedStyle(sc).paddingTop);
+            var progArea = 0;
+            if(progEl){
+                var pCS = getComputedStyle(progEl);
+                progArea = progEl.getBoundingClientRect().height + parseFloat(pCS.marginTop) + parseFloat(pCS.marginBottom);
+            }
+            var overhead = chromePadTop + padBot + hdrH + progArea;
+            var remaining = vh - overhead - calMeasured;
 
-        /* c. Measure fixed overhead */
-        var chromePadTop = parseFloat(getComputedStyle(sc).paddingTop);
-        var progArea = 0;
-        if(progEl){
-            var pCS = getComputedStyle(progEl);
-            progArea = progEl.getBoundingClientRect().height + parseFloat(pCS.marginTop) + parseFloat(pCS.marginBottom);
+            /* LOD 1 percentages */
+            var svcAlloc = Math.max(80, Math.round(remaining * 0.40));
+            var tsAlloc = Math.max(50, Math.round(remaining * 0.22));
+            var btnAlloc = Math.max(36, Math.round(remaining * 0.13));
+            var gapTotal = remaining - svcAlloc - tsAlloc - btnAlloc;
+            var gapSize = Math.max(4, Math.round(gapTotal / 3));
+
+            /* Apply svc */
+            var svcWrap = document.querySelector('.svc-wrap');
+            var svcLblH = content.children[0].querySelector('.lbl') ?
+                content.children[0].querySelector('.lbl').getBoundingClientRect().height : 0;
+            var svcScrollH = Math.max(60, svcAlloc - svcLblH);
+            svcScroll.style.maxHeight = svcScrollH + 'px';
+            if(svcWrap) svcWrap.style.height = svcScrollH + 'px';
+
+            /* Apply time slots */
+            var tsLblH = content.children[2].querySelector('.tslot-head') ?
+                content.children[2].querySelector('.tslot-head').getBoundingClientRect().height : 0;
+            var tcAvail = Math.max(40, tsAlloc - tsLblH);
+            var tcH = Math.max(28, Math.round(tcAvail / 2 - 3));
+            tcs.forEach(function(t){ t.style.height = tcH + 'px'; t.style.lineHeight = tcH + 'px'; });
+
+            /* Apply button */
+            btn.style.height = btnAlloc + 'px';
+            btn.style.lineHeight = btnAlloc + 'px';
+
+            /* Apply gaps */
+            content.children[1].style.marginTop = gapSize + 'px';
+            content.children[2].style.marginTop = gapSize + 'px';
+            btn.style.marginTop = gapSize + 'px';
+
+            if(thumbFn) thumbFn();
+        } else {
+            /* LOD 2/3: original baseline steps 6-9 */
+/* 6 - Scale header on constrained screens */
+        if(sf < 0.90){
+            var chromeSave = Math.round((1.0 - sf) * basePadTop * 0.5);
+            chromeSave = Math.min(chromeSave, Math.round(basePadTop * 0.4));
+            sc.style.paddingTop = (basePadTop - chromeSave) + 'px';
+            available += chromeSave;
+            sf = available / idealTotal;
         }
-        var overhead = chromePadTop + padBot + hdrH + progArea;
 
-        /* d. Remaining for percentage allocation */
-        var remaining = vh - overhead - calMeasured;
+        /* 7 - Visible rows */
+        var visibleRows = 3;
+        if(sf >= 1.10 && rows.length > 3){
+            for(var tr = Math.min(rows.length, 4); tr > 3; tr--){
+                var tryTotal = tr * idealRowH + idealCalH + idealTsH + IDEAL_BTN_H + (NUM_CONTENT_GAPS + 1) * IDEAL_GAP;
+                if(available / tryTotal >= 1.10){ visibleRows = tr; break; }
+            }
+        }
 
-        /* e. LOD-specific percentages */
-        var pSvc, pTs, pBtn, pGaps;
-        if(lod === 1){ pSvc = 0.40; pTs = 0.22; pBtn = 0.13; pGaps = 0.25; }
-        else if(lod === 2){ pSvc = 0.38; pTs = 0.22; pBtn = 0.12; pGaps = 0.28; }
-        else { pSvc = 0.34; pTs = 0.22; pBtn = 0.10; pGaps = 0.34; }
+        /* 8 - Proportional scaling */
+        var s = Math.min(sf, 1.0);
+        var svcPad = Math.max(6, Math.round(IDEAL_SVC_PAD * s));
+        rows.forEach(function(r){ r.style.paddingTop = svcPad + 'px'; r.style.paddingBottom = svcPad + 'px'; });
 
-        /* f. Compute pixel values with floors */
-        var svcAlloc = Math.max(80, Math.round(remaining * pSvc));
-        var tsAlloc = Math.max(50, Math.round(remaining * pTs));
-        var btnAlloc = Math.max(36, Math.round(remaining * pBtn));
-        var gapTotal = remaining - svcAlloc - tsAlloc - btnAlloc;
-        var gapSize = Math.max(4, Math.round(gapTotal / 3));
+        var t0 = rows[0].getBoundingClientRect().top;
+        var bN = rows[Math.min(visibleRows - 1, rows.length - 1)].getBoundingClientRect().bottom;
+        var baseSvcMaxH = Math.floor(bN - t0);
+        if(rows.length > visibleRows) svcScroll.style.maxHeight = baseSvcMaxH + 'px';
 
-        /* g. Apply svc section */
+        var cellH = Math.max(20, Math.round(idealCellH * s));
+        cells.forEach(function(c){ c.style.height = cellH + 'px'; });
+        if(cellH < 28) cells.forEach(function(c){ c.style.fontSize = '11px'; });
+
+        var tcH = Math.min(56, Math.max(28, Math.round(IDEAL_TC_H * s)));
+        tcs.forEach(function(t){ t.style.height = tcH + 'px'; });
+
+        var btnH = Math.round(IDEAL_BTN_H * s);
+        btnH = Math.max(btnH, tcH + 4);
+        if(sf > 1.0) btnH = Math.round(IDEAL_BTN_H * Math.min(sf, 1.25));
+        var btnPad = Math.max(10, Math.round((btnH - 19) / 2));
+        btn.style.paddingTop = btnPad + 'px'; btn.style.paddingBottom = btnPad + 'px';
+
+        /* 9 - Sync svc-wrap, then allocate gaps (clean) */
         var svcWrap = document.querySelector('.svc-wrap');
-        var svcLblH = content.children[0].querySelector('.lbl') ?
-            content.children[0].querySelector('.lbl').getBoundingClientRect().height : 0;
-        var svcScrollH = Math.max(60, svcAlloc - svcLblH);
-        svcScroll.style.maxHeight = svcScrollH + 'px';
-        if(svcWrap) svcWrap.style.height = svcScrollH + 'px';
+        var svcScrollH = svcScroll.offsetHeight;
+        svcWrap.style.height = svcScrollH + 'px';
 
-        /* h. Apply time slots */
-        var tsLblH = content.children[2].querySelector('.tslot-head') ?
-            content.children[2].querySelector('.tslot-head').getBoundingClientRect().height : 0;
-        var tcAvail = Math.max(40, tsAlloc - tsLblH);
-        var tcH = Math.max(28, Math.round(tcAvail / 2 - 3));
-        tcs.forEach(function(t){ t.style.height = tcH + 'px'; t.style.lineHeight = tcH + 'px'; });
+        var headerPad = parseFloat(getComputedStyle(sc).paddingTop);
+        var contentH = vh - headerPad - padBot - hdrH;
+        var totalChildH = 0;
+        for(var ci = 0; ci < content.children.length; ci++)
+            totalChildH += content.children[ci].getBoundingClientRect().height;
+        var spaceForGaps = contentH - totalChildH;
+        var numGaps = NUM_CONTENT_GAPS + 1;
 
-        /* i. Apply button */
-        btn.style.height = btnAlloc + 'px';
-        btn.style.lineHeight = btnAlloc + 'px';
+        if(spaceForGaps < numGaps * MIN_GAP){
+            var deficit = numGaps * MIN_GAP - spaceForGaps;
+            /* Priority 1: shrink svc */
+            var minSvcH = rows[0].getBoundingClientRect().height * 2 + rowGap;
+            var svcShrink = Math.min(deficit, svcScrollH - minSvcH);
+            if(svcShrink > 0){
+                var newSvcH = Math.ceil(svcScrollH - svcShrink);
+                svcScroll.style.maxHeight = newSvcH + 'px';
+                svcWrap.style.height = newSvcH + 'px';
+                deficit -= svcShrink;
+            }
+            /* Priority 2: trim header padding */
+            if(deficit > 0){
+                var hTrim = Math.min(Math.round(headerPad - 4), Math.ceil(deficit));
+                if(hTrim > 0) sc.style.paddingTop = (headerPad - hTrim) + 'px';
+            }
+            /* Recompute after changes */
+            contentH = vh - parseFloat(getComputedStyle(sc).paddingTop) - padBot - hdrH;
+            totalChildH = 0;
+            for(var ci2 = 0; ci2 < content.children.length; ci2++)
+                totalChildH += content.children[ci2].getBoundingClientRect().height;
+            spaceForGaps = contentH - totalChildH;
+        }
 
-        /* j. Apply gaps */
+        var gapSize = Math.min(20, Math.max(MIN_GAP, Math.round(spaceForGaps / numGaps)));
+        /* If still not enough, allow smaller gaps */
+        if(gapSize * numGaps > spaceForGaps) gapSize = Math.max(2, Math.floor(spaceForGaps / numGaps));
         content.children[1].style.marginTop = gapSize + 'px';
         content.children[2].style.marginTop = gapSize + 'px';
         btn.style.marginTop = gapSize + 'px';
 
         if(thumbFn) thumbFn();
     }
+        }
 
 
     function initServiceSelect(){
