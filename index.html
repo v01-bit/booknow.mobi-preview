@@ -6,7 +6,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="theme-color" content="#2D2D2D">
-<title>BookNow — Book a Service</title>
+<title>BookNow â Book a Service</title>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
 *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:rgba(255,255,255,0.15)}
@@ -131,7 +131,7 @@ html{scrollbar-width:none}
             </div>
         </div>
         <div class="section">
-            <div class="cal-head"><span class="mo">April 2026</span><div class="arrows"><button class="arr">‹</button><button class="arr">›</button></div></div>
+            <div class="cal-head"><span class="mo">April 2026</span><div class="arrows"><button class="arr">â¹</button><button class="arr">âº</button></div></div>
             <div class="cal-wk"><span>M</span><span>T</span><span>W</span><span>T</span><span>F</span><span>S</span><span>S</span></div>
             <div class="cal-grid">
                 <div class="cd empty"></div><div class="cd empty"></div><div class="cd past">1</div><div class="cd past">2</div><div class="cd past">3</div><div class="cd past">4</div><div class="cd past">5</div>
@@ -142,28 +142,28 @@ html{scrollbar-width:none}
             </div>
         </div>
         <div class="section">
-            <div class="tslot-head"><span class="tlbl">Time slot — Tue 8 Apr</span><div class="arrows"><button class="arr" onclick="document.querySelector('.tscroll').scrollBy({left:-120,behavior:'smooth'})">‹</button><button class="arr" onclick="document.querySelector('.tscroll').scrollBy({left:120,behavior:'smooth'})">›</button></div></div>
+            <div class="tslot-head"><span class="tlbl">Time slot â Tue 8 Apr</span><div class="arrows"><button class="arr" onclick="document.querySelector('.tscroll').scrollBy({left:-120,behavior:'smooth'})">â¹</button><button class="arr" onclick="document.querySelector('.tscroll').scrollBy({left:120,behavior:'smooth'})">âº</button></div></div>
             <div class="tscroll-wrap">
                 <div class="tscroll">
                     <div class="tcol">
-                        <div class="tc busy">8:00 – 9:00</div>
-                        <div class="tc">12:00 – 13:00</div>
+                        <div class="tc busy">8:00 â 9:00</div>
+                        <div class="tc">12:00 â 13:00</div>
                     </div>
                     <div class="tcol">
-                        <div class="tc busy">9:00 – 10:00</div>
-                        <div class="tc">13:00 – 14:00</div>
+                        <div class="tc busy">9:00 â 10:00</div>
+                        <div class="tc">13:00 â 14:00</div>
                     </div>
                     <div class="tcol">
-                        <div class="tc sel">10:00 – 11:00</div>
-                        <div class="tc busy">14:00 – 15:00</div>
+                        <div class="tc sel">10:00 â 11:00</div>
+                        <div class="tc busy">14:00 â 15:00</div>
                     </div>
                     <div class="tcol">
-                        <div class="tc">11:00 – 12:00</div>
-                        <div class="tc">15:00 – 16:00</div>
+                        <div class="tc">11:00 â 12:00</div>
+                        <div class="tc">15:00 â 16:00</div>
                     </div>
                     <div class="tcol">
-                        <div class="tc">16:00 – 17:00</div>
-                        <div class="tc busy">17:00 – 18:00</div>
+                        <div class="tc">16:00 â 17:00</div>
+                        <div class="tc busy">17:00 â 18:00</div>
                     </div>
                 </div>
             </div>
@@ -243,61 +243,44 @@ html{scrollbar-width:none}
         var progEl = document.querySelector('.progress');
         var lod = (vh <= 700) ? 1 : (vh <= 900) ? 2 : 3;
         if(lod === 1){
-
-            /* Calendar self-sizing */
-            var cellH = Math.max(20, Math.min(Math.round(idealCellH), Math.round(vh * 0.048)));
-            cells.forEach(function(c){ c.style.height = cellH + 'px'; });
-
-            /* Measure calendar section */
-            var calSection = content.children[1];
-            var calMeasured = calSection.getBoundingClientRect().height;
-
-            /* Fixed overhead: header chrome + progress (NO padBot — we control bottom gap) */
-            var chromePadTop = parseFloat(getComputedStyle(sc).paddingTop);
-            var progArea = 0;
-            if(progEl){
-                var pCS = getComputedStyle(progEl);
-                progArea = progEl.getBoundingClientRect().height + parseFloat(pCS.marginTop) + parseFloat(pCS.marginBottom);
-            }
-            var overhead = chromePadTop + hdrH + progArea;
-            var remaining = vh - overhead - calMeasured;
-
-            /* LOD 1 percentages */
-            var svcAlloc = Math.max(80, Math.round(remaining * 0.48));
-            var tsAlloc = Math.max(50, Math.round(remaining * 0.22));
-            var btnAlloc = Math.max(36, Math.round(remaining * 0.14));
-            /* 5 gaps: above svc, svc-cal, cal-ts, ts-btn, below btn */
-            var gapTotal = remaining - svcAlloc - tsAlloc - btnAlloc;
-            var gapSize = Math.max(3, Math.floor(gapTotal / 5));
-
-            /* Apply svc */
-            var svcWrap = document.querySelector('.svc-wrap');
-            var svcLblH = content.children[0].querySelector('.lbl') ?
-                content.children[0].querySelector('.lbl').getBoundingClientRect().height : 0;
-            var svcScrollH = Math.max(60, svcAlloc - svcLblH);
-            svcScroll.style.maxHeight = svcScrollH + 'px';
-            if(svcWrap) svcWrap.style.height = svcScrollH + 'px';
-
-            /* Apply time slots */
-            var tsLblH = content.children[2].querySelector('.tslot-head') ?
-                content.children[2].querySelector('.tslot-head').getBoundingClientRect().height : 0;
-            var tcAvail = Math.max(40, tsAlloc - tsLblH);
-            var tcH = Math.max(28, Math.round(tcAvail / 2 - 3));
-            tcs.forEach(function(t){ t.style.height = tcH + 'px'; t.style.lineHeight = tcH + 'px'; });
-
-            /* Apply button */
-            btn.style.height = btnAlloc + 'px';
-            btn.style.lineHeight = btnAlloc + 'px';
-
-            /* Apply 5 gaps */
-            content.children[0].style.marginTop = gapSize + 'px';  /* above svc */
-            content.children[1].style.marginTop = gapSize + 'px';  /* svc-cal */
-            content.children[2].style.marginTop = gapSize + 'px';  /* cal-ts */
-            btn.style.marginTop = gapSize + 'px';                  /* ts-btn */
-            sc.style.paddingBottom = gapSize + 'px';               /* below btn */
-
-            if(thumbFn) thumbFn();
-        } else {
+/* LOD1 hybrid % — hdr:10 svc:48 ts:22 btn:14 gaps:6 */
+var cellH = Math.max(20, Math.min(Math.round(idealCellH), Math.round(vh * 0.048)));
+cells.forEach(function(c){ c.style.height = cellH + "px"; });
+var calSection = content.children[1];
+var calMeasured = calSection.getBoundingClientRect().height;
+var chromePadTop = parseFloat(getComputedStyle(sc).paddingTop);
+var progArea = 0;
+if(progEl){ var pCS = getComputedStyle(progEl); progArea = progEl.getBoundingClientRect().height + parseFloat(pCS.marginTop) + parseFloat(pCS.marginBottom); }
+var overhead = chromePadTop + progArea;
+var remaining = vh - overhead - calMeasured;
+var hdrEl = sc.children[0];
+var hdrAlloc = Math.max(30, Math.round(remaining * 0.10));
+var svcAlloc = Math.max(80, Math.round(remaining * 0.48));
+var tsAlloc = Math.max(50, Math.round(remaining * 0.22));
+var btnAlloc = Math.max(36, Math.round(remaining * 0.14));
+var gapTotal = remaining - hdrAlloc - svcAlloc - tsAlloc - btnAlloc;
+var gapSize = Math.max(2, Math.floor(gapTotal / 5));
+hdrEl.style.height = hdrAlloc + "px";
+hdrEl.style.overflow = "hidden";
+var svcWrap = document.querySelector(".svc-wrap");
+var svcLblH = content.children[0].querySelector(".lbl") ? content.children[0].querySelector(".lbl").getBoundingClientRect().height : 0;
+var svcScrollH = Math.max(60, svcAlloc - svcLblH);
+svcScroll.style.maxHeight = svcScrollH + "px";
+if(svcWrap) svcWrap.style.height = svcScrollH + "px";
+var tsLblH = content.children[2].querySelector(".tslot-head") ? content.children[2].querySelector(".tslot-head").getBoundingClientRect().height : 0;
+var tcAvail = Math.max(40, tsAlloc - tsLblH);
+var tcH = Math.max(28, Math.round(tcAvail / 2 - 3));
+tcs.forEach(function(t){ t.style.height = tcH + "px"; t.style.lineHeight = tcH + "px"; });
+btn.style.height = btnAlloc + "px";
+btn.style.lineHeight = btnAlloc + "px";
+content.style.paddingTop = "0px";
+content.children[0].style.marginTop = gapSize + "px";
+content.children[1].style.marginTop = gapSize + "px";
+content.children[2].style.marginTop = gapSize + "px";
+btn.style.marginTop = gapSize + "px";
+sc.style.paddingBottom = gapSize + "px";
+if(thumbFn) thumbFn();
+} else {
             /* LOD 2/3: original baseline steps 6-9 */
 /* 6 - Scale header on constrained screens */
         if(sf < 0.90){
