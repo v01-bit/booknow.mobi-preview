@@ -268,7 +268,7 @@ html{scrollbar-width:none}
         }
 
 if(lod === 1){
-        /* LOD1 v6: inner sizing hdr7 svc30 cal30 ts15 btn10 gaps8 */
+        /* LOD1 v6: inner sizing hdr7 svc30 cal31 ts16 btn8 gaps8 */
         var chromePadTop = parseFloat(getComputedStyle(sc).paddingTop);
         var progArea = 0;
         if(progEl){ var pCS = getComputedStyle(progEl); progArea = progEl.getBoundingClientRect().height + parseFloat(pCS.marginTop) + parseFloat(pCS.marginBottom); }
@@ -276,9 +276,9 @@ if(lod === 1){
         var headerEl = document.querySelector(".header");
         var hdrAlloc = Math.max(30, Math.round(remaining * 0.07));
         var svcAlloc = Math.max(120, Math.round(remaining * 0.30));
-        var calAlloc = Math.max(120, Math.round(remaining * 0.30));
-        var tsAlloc = Math.max(70, Math.round(remaining * 0.15));
-        var btnAlloc = Math.max(36, Math.round(remaining * 0.10));
+        var calAlloc = Math.max(120, Math.round(remaining * 0.31));
+        var tsAlloc = Math.max(70, Math.round(remaining * 0.16));
+        var btnAlloc = Math.max(36, Math.round(remaining * 0.08));
         var gapTotal = remaining - hdrAlloc - svcAlloc - calAlloc - tsAlloc - btnAlloc;
         var gapSize = Math.max(2, Math.floor(gapTotal / 5));
         headerEl.style.height = hdrAlloc + "px";
