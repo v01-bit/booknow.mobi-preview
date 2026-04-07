@@ -271,7 +271,7 @@ html{scrollbar-width:none}
         /* 6 - Layout: LOD 1 uses hybrid percentages, LOD 2/3 use original */
         if(lod === 1){
             /* Calendar self-sizing */
-            var cellH = Math.max(20, Math.min(Math.round(idealCellH), Math.round(vh * 0.038)));
+            var cellH = Math.max(20, Math.min(Math.round(idealCellH), Math.round(vh * 0.048)));
             cells.forEach(function(c){ c.style.height = cellH + 'px'; });
 
             /* Measure calendar section */
@@ -289,9 +289,9 @@ html{scrollbar-width:none}
             var remaining = vh - overhead - calMeasured;
 
             /* LOD 1 percentages */
-            var svcAlloc = Math.max(80, Math.round(remaining * 0.40));
-            var tsAlloc = Math.max(50, Math.round(remaining * 0.22));
-            var btnAlloc = Math.max(36, Math.round(remaining * 0.13));
+            var svcAlloc = Math.max(80, Math.round(remaining * 0.45));
+            var tsAlloc = Math.max(50, Math.round(remaining * 0.24));
+            var btnAlloc = Math.max(36, Math.round(remaining * 0.16));
             var gapTotal = remaining - svcAlloc - tsAlloc - btnAlloc;
             var gapSize = Math.max(4, Math.round(gapTotal / 3));
 
