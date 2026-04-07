@@ -243,7 +243,7 @@ html{scrollbar-width:none}
         var progEl = document.querySelector('.progress');
         var lod = (vh <= 700) ? 1 : (vh <= 900) ? 2 : 3;
         if(lod === 1){
-/* LOD1 hybrid % — hdr:10 svc:48 ts:22 btn:14 gaps:6 */
+/* LOD1 hybrid pct: hdr10 svc48 ts22 btn14 gaps6 v2fix */
 var cellH = Math.max(20, Math.min(Math.round(idealCellH), Math.round(vh * 0.048)));
 cells.forEach(function(c){ c.style.height = cellH + "px"; });
 var calSection = content.children[1];
@@ -273,8 +273,9 @@ var tcH = Math.max(28, Math.round(tcAvail / 2 - 3));
 tcs.forEach(function(t){ t.style.height = tcH + "px"; t.style.lineHeight = tcH + "px"; });
 btn.style.height = btnAlloc + "px";
 btn.style.lineHeight = btnAlloc + "px";
-content.style.paddingTop = "0px";
-content.children[0].style.marginTop = gapSize + "px";
+/* 5 gaps: paddingTop=gap1, margins=gap2-4, paddingBottom=gap5 */
+content.style.paddingTop = gapSize + "px";
+content.children[0].style.marginTop = "0px";
 content.children[1].style.marginTop = gapSize + "px";
 content.children[2].style.marginTop = gapSize + "px";
 btn.style.marginTop = gapSize + "px";
